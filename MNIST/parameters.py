@@ -10,7 +10,7 @@ def get_arguments():
     parser = argparse.ArgumentParser(description='PyTorch MNIST')
     
     # Directory
-    parser.add_argument('--directory', type=str, default='/home/metehan/adv_ml/MNIST/', metavar='', help='Directory for checkpoint and stuff')
+    parser.add_argument('--directory', type=str, default='/home/metehan/deep_adv/MNIST/', metavar='', help='Directory for checkpoint and stuff')
 
     # Dataset
     parser.add_argument('--dataset', type=str, default='mnist', choices=["mnist","fashion"], metavar='mnist/fashion', help='Which dataset to use (default: mnist)')
@@ -18,11 +18,6 @@ def get_arguments():
     # Neural Model
     parser.add_argument('--model', type=str, default='CNN', metavar='FcNN/CNN', help='Which model to use (default: CNN)')
 
-    # Bias Scalars
-    parser.add_argument('-d1', '--delta1', type=float, default=0., metavar='', help='bias scalar 1')
-    parser.add_argument('-d2', '--delta2', type=float, default=0., metavar='', help='bias scalar 2')
-    parser.add_argument('-d3', '--delta3', type=float, default=0., metavar='', help='bias scalar 3')
-    parser.add_argument('-d4', '--delta4', type=float, default=0., metavar='', help='bias scalar 4')
 
     # Optimizer
     parser.add_argument('-lr', '--learning_rate', type=float, default=0.01, metavar='LR', help='learning rate (default: 0.01)')
@@ -55,7 +50,6 @@ def get_arguments():
     parser.add_argument('--seed', type=int, default=1, metavar='S', help='random seed (default: 1)')
     parser.add_argument('--log_interval', type=int, default=600, metavar='N', help='how many batches to wait before logging training status')
 
-    
     # Actions
     parser.add_argument('-tr', '--train', action='store_true', help='Train network, default = False')
     parser.add_argument("-adv", "--adversarial", action="store_true", help="Train (or load) model adversarially, default = False",)

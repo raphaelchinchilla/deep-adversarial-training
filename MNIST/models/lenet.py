@@ -34,56 +34,64 @@ class CNN(nn.Module):
     def forward(self, x):
 
         x = self.norm(x)
+        n1 = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+        n2 = F.max_pool2d(F.relu(self.conv2(n1)), (2, 2))
+        n3 = x.view(n2.size(0), -1)
+        n4 = F.relu(self.fc1(n3))
+        x = self.fc2(n4)
+
+        return x
+
+
+class FirstLayer(nn.Module):
+    def __init__(self):
+        super(FirstLayer, self).__init__()
+
+        self.norm = Normalize(mean=[0.1307], std=[0.3081])
+        self.conv1 = nn.Conv2d(1, 32, kernel_size = 5, stride = 1, padding = 2, bias=True)
+
+    def forward(self, x):
+
+        x = self.norm(x)
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
+
+        return x
+
+class SecondLayer(nn.Module):
+    def __init__(self):
+        super(SecondLayer, self).__init__()
+
+        self.conv2 = nn.Conv2d(32, 64, kernel_size = 5, stride = 1, padding = 2, bias=True)
+
+    def forward(self, x):
+
         x = F.max_pool2d(F.relu(self.conv2(x)), (2, 2))
+
+        return x
+
+class ThirdLayer(nn.Module):
+    def __init__(self):
+        super(ThirdLayer, self).__init__()
+
+        self.fc1 = nn.Linear(7 * 7 * 64, 1024, bias=True)
+
+    def forward(self, x):
+
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
+
+        return x
+
+class FourthLayer(nn.Module):
+    def __init__(self):
+        super(FourthLayer, self).__init__()
+
+        self.fc2 = nn.Linear(1024, 10, bias=True)
+
+    def forward(self, x):
+
         x = self.fc2(x)
 
         return x
 
 
-
-class FcNN(nn.Module):
-
-    def __init__(self):
-        super(FcNN, self).__init__()
-
-        self.fc1 = nn.Linear(784, 1000)
-        self.fc2 = nn.Linear(1000, 1000)
-        self.fc3 = nn.Linear(1000, 10)
-
-    def forward(self, x):
-
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-
-        return x
-
-class Fc5NN(nn.Module):
-
-    def __init__(self):
-        super(Fc5NN, self).__init__()
-        # 1 input image channel, 200 output channels, 5x5 square convolution
-        # kernel
-        self.fc1 = nn.Linear(784, 1000)
-        self.fc2 = nn.Linear(1000, 1000)
-        self.fc3 = nn.Linear(1000, 1000)
-        self.fc4 = nn.Linear(1000, 1000)
-        self.fc5 = nn.Linear(1000, 1000)
-        self.fc6 = nn.Linear(1000, 10)
-
-    # If you want to see sparsity of neuron outputs for each layer, set show_sparsity = True
-    def forward(self, x):
-
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
-        x = F.relu(self.fc5(x))
-        x = self.fc6(x)
-
-        return x

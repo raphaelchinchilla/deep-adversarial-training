@@ -21,16 +21,17 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 import os
 
-from adv_ml.MNIST.models.lenet import CNN, FcNN
-from adv_ml.train_test_functions import (
+from deep_adv.MNIST.models.layers import LeNet
+from deep_adv.train_test_functions import (
     train,
     train_adversarial,
+    train_deep_adversarial,
     test,
     test_adversarial,
 )
-from adv_ml.MNIST.parameters import get_arguments
-from adv_ml.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
-from adv_ml.MNIST.read_datasets import MNIST
+from deep_adv.MNIST.parameters import get_arguments
+from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deep_adv.MNIST.read_datasets import MNIST
 
 
 def main():
@@ -47,16 +48,12 @@ def main():
     x_min = 0.0
     x_max = 1.0
 
-    # Decide on which model to use
-    if args.model == "CNN":
-        model = CNN().to(device)
-    elif args.model == "FcNN":
-        model = FcNN().to(device)
-    else:
-        raise NotImplementedError
 
+    model = LeNet().to(device)
 
     print(model)
+
+    # breakpoint()
 
     # Which optimizer to be used for training
     optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
@@ -90,7 +87,7 @@ def main():
             }
 
             for epoch in range(1, args.epochs + 1):
-                train_adversarial(
+                train_deep_adversarial(
                     args,
                     model,
                     device,
@@ -135,48 +132,6 @@ def main():
         print("Clean test accuracy")
         test(args, model, device, test_loader)
 
-    # plot_filters(model)
-
-    # if True:
-    #     model.eval()
-    #     norm = None
-    #     # data_params = {'x_min': x_min,
-    #     #                'x_max': x_max}
-    #     # attack_params = {'norm': 2,
-    #     #                  'eps': args.epsilon,
-    #     #                  'step_size': args.step_size,
-    #     #                  'num_steps': args.num_iterations,
-    #     #                  'random_start': args.rand,
-    #     #                  'num_restarts': args.num_restarts}
-    #     data_params = {"x_min": x_min, "x_max": x_max}
-    #     attack_params = {
-    #         "norm": "inf",
-    #         "eps": 0.3,
-    #         "step_size": 0.01,
-    #         "num_steps": 100,
-    #         "random_start": True,
-    #         "num_restarts": 1,
-    #     }
-    #     for data, target in test_loader:
-    #         data, target = data.to(device), target.to(device)
-    #         perturbs = PGD(
-    #             model,
-    #             data,
-    #             target,
-    #             device,
-    #             data_params=data_params,
-    #             attack_params=attack_params,
-    #         )
-    #         plot_perturbations(
-    #             model,
-    #             data,
-    #             target,
-    #             torch.clamp(data + perturbs, 0, 1),
-    #             norm=attack_params["norm"],
-    #             budget=attack_params["eps"],
-    #             x_min=x_min,
-    #             x_max=x_max,
-    #         )
 
     # Attack network if args.attack_network is set to True (You can set that true by calling '-at' flag, default is False)
     if args.attack_network:

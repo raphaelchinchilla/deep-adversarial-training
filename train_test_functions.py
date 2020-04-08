@@ -17,7 +17,8 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from adv_ml.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deep_adv.adversary.layer_attacks import SingleStep 
 
 
 def train(args, model, device, train_loader, optimizer, epoch):
@@ -70,6 +71,82 @@ def train_adversarial(
 
         optimizer.zero_grad()
         output = model(data_adv)
+        cross_ent = nn.CrossEntropyLoss()
+        loss = cross_ent(output, target)
+        loss.backward()
+        optimizer.step()
+
+        if (batch_idx+1) % args.log_interval == 0 and batch_idx != 0:
+
+            pred_adv = output.argmax(dim=1, keepdim=True)
+            correct_adv = pred_adv.eq(target.view_as(pred_adv)).sum().item()
+
+            output = model(data)
+            pred_clean = output.argmax(dim=1, keepdim=True)
+            correct_clean = pred_clean.eq(target.view_as(pred_clean)).sum().item()
+
+            print(
+                f"Train Epoch: {epoch+1} {100. * (batch_idx+1) / len(train_loader):.2f}%\tLoss: {loss.item():.2f}\tClean Acc: {100.*correct_clean/output.shape[0]:.2f}%\tAdv Acc: {100.*correct_adv/output.shape[0]:.2f}%\t Time: {time.time() - start_time:.2f} sec"
+            )
+            start_time = time.time()
+
+def train_deep_adversarial(
+    args, model, device, train_loader, optimizer, epoch, data_params, attack_params
+):
+    start_time = time.time()
+    model.train()
+    eps = attack_params['eps']*10
+
+    for batch_idx, (data, target) in enumerate(train_loader):
+
+        # Feed data to device ( e.g, GPU )
+        data, target = data.to(device), target.to(device)
+
+
+
+        # Adversary
+        n1 = model.l1(data)
+        n2 = model.l2(n1)
+        n3 = model.l3(n2)
+        # n3 = model.l4(n3)
+
+        d1 = SingleStep(
+            net = model,
+            l = n1,
+            y_true = target,
+            eps = eps,
+            lamb = 0.,
+            layer_num =2,
+            norm = "ascend"
+        )
+
+        d2 = SingleStep(
+            net = model,
+            l = n2,
+            y_true = target,
+            eps = eps,
+            lamb = 0.,
+            layer_num =3,
+            norm = "ascend"
+        )
+
+        d3 = SingleStep(
+            net = model,
+            l = n3,
+            y_true = target,
+            eps = eps,
+            lamb = 0.,
+            layer_num =4,
+            norm = "ascend"
+        )
+
+        n1 = model.l1(data)
+        n2 = model.l2(n1+d1)
+        n3 = model.l3(n2+d2)
+        output = model.l4(n3+d3)
+
+        optimizer.zero_grad()
+        output = model.l4(n3+d3)
         cross_ent = nn.CrossEntropyLoss()
         loss = cross_ent(output, target)
         loss.backward()
