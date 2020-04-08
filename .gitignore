@@ -1,0 +1,11 @@
+.DS_Store
+.DS_Store?
+._*
+
+*checkpoints/
+
+**/data/*
+**/checkpoints/*
+**/*.ipynb
+**/*.pyc
+**/__pycache__/*
