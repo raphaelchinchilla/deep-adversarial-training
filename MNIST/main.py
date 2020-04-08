@@ -3,7 +3,7 @@ Main running script for testing and training of fixed bias model implemented wit
 
 Example Run
 
-python -m cvx_demixing.MNIST.main -tr -adv -sm -at 
+python -m deep_adv.MNIST.main -tr -adv -sm -at 
 
 
 """

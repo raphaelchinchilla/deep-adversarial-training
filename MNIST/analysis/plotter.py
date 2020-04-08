@@ -10,7 +10,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from adv_ml.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
 
 mpl.rc('text', usetex = True)
 mpl.rc('text.latex', preamble = r'\usepackage{amsmath}, \usepackage{sfmath}')
