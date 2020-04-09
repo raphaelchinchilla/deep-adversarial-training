@@ -95,58 +95,45 @@ def train_deep_adversarial(
 ):
     start_time = time.time()
     model.train()
-    eps = attack_params['eps']*10
 
     for batch_idx, (data, target) in enumerate(train_loader):
 
         # Feed data to device ( e.g, GPU )
         data, target = data.to(device), target.to(device)
 
-
-
         # Adversary
         n1 = model.l1(data)
         n2 = model.l2(n1)
         n3 = model.l3(n2)
-        # n3 = model.l4(n3)
 
-        d1 = SingleStep(
+        # perturbs = PGD(
+        #         model,
+        #         data,
+        #         target,
+        #         device,
+        #         verbose=False,
+        #         data_params=data_params,
+        #         attack_params=attack_params,
+        # )
+
+        [d1, d2, d3] = SingleStep(
             net = model,
-            l = n1,
+            layers = [n1, n2, n3],
             y_true = target,
-            eps = eps,
-            lamb = 0.,
-            layer_num =2,
-            norm = "ascend"
+            eps = attack_params["eps"],
+            lamb = 0.001,
         )
 
-        d2 = SingleStep(
-            net = model,
-            l = n2,
-            y_true = target,
-            eps = eps,
-            lamb = 0.,
-            layer_num =3,
-            norm = "ascend"
-        )
-
-        d3 = SingleStep(
-            net = model,
-            l = n3,
-            y_true = target,
-            eps = eps,
-            lamb = 0.,
-            layer_num =4,
-            norm = "ascend"
-        )
+       
+        # data_adv = data + perturbs
+        # data_adv = torch.clamp(data_adv, 0, 1)
 
         n1 = model.l1(data)
-        n2 = model.l2(n1+d1)
-        n3 = model.l3(n2+d2)
-        output = model.l4(n3+d3)
+        n2 = model.l2(n1+d1*epoch*10)
+        n3 = model.l3(n2+d2*epoch*10)
 
         optimizer.zero_grad()
-        output = model.l4(n3+d3)
+        output = model.l4(n3+d3*epoch*10)
         cross_ent = nn.CrossEntropyLoss()
         loss = cross_ent(output, target)
         loss.backward()

@@ -16,7 +16,7 @@ from torch import nn
 import torch.nn.functional as F
 
 
-def SingleStep(net, l, y_true, eps, lamb, layer_num = 2, norm="inf"):
+def SingleStep(net, layers, y_true, eps, lamb, norm="inf"):
     """
     Input : 
         net : Neural Network (Classifier) 
@@ -27,14 +27,22 @@ def SingleStep(net, l, y_true, eps, lamb, layer_num = 2, norm="inf"):
     Output:
         perturbation : Single step perturbation
     """
-    d = torch.zeros_like(l, requires_grad=True)
-    if layer_num ==2:
-        y_hat = net.l4(net.l3(net.l2(l + d)))
-    elif layer_num ==3:
-        y_hat = net.l4(net.l3(l + d))
-    elif layer_num ==4:
-        y_hat = net.l4(l + d)
-    reg = torch.norm(d.view(d.size(0),-1), 'fro',(1))
+    distortions = [None] * len(layers)
+    for i, layer in enumerate(layers):
+        distortions[i] = torch.zeros_like(layer, requires_grad=True)
+
+    # layer_functions = [net.l3, net.l4]
+    # a = net.l2(layers[0]+distortions[0])
+    # for i, f in enumerate(layer_functions):
+    #     a = f(a+distortions[i+1])
+    # y_hat = a
+
+    y_hat = net.l4(net.l3(net.l2(layers[0] + distortions[0])+distortions[1])+distortions[2])
+   
+    reg = 0
+    for distortion in distortions:
+        reg += torch.norm(distortion.view(distortion.size(0),-1), 'fro',(1))
+    
     criterion = nn.CrossEntropyLoss(reduction="none")
     # breakpoint()
     loss = criterion(y_hat, y_true) - lamb * reg
@@ -43,19 +51,12 @@ def SingleStep(net, l, y_true, eps, lamb, layer_num = 2, norm="inf"):
         gradient=torch.ones_like(y_true, dtype=torch.float), retain_graph=True
     )
 
-    d_grad = d.grad.data
-    if norm == "inf":
-        perturbation = eps * d_grad.sign()
-    elif norm == "ascend":
-        perturbation = d_grad * eps
-    else:
-        perturbation = (
-            d_grad
-            * eps
-            / d_grad.view(d.shape[0], -1).norm(p=norm, dim=-1).view(-1, 1, 1, 1)
-        )
-
-    return perturbation
+    dist_grads = [None] * len(distortions)
+    for i, distortion in enumerate(distortions):
+        dist_grads[i] = distortion.grad.data
+    # breakpoint()
+    
+    return dist_grads
 
 
 # def ProjectedGradientDescent(

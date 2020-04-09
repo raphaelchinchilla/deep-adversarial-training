@@ -109,7 +109,7 @@ def main():
                     args.directory
                     + "checkpoints/"
                     + args.model
-                    + "_adv_"
+                    + "_adv_new"
                     + args.tr_norm
                     + "_"
                     + str(args.tr_epsilon)
