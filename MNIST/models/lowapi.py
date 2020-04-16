@@ -9,46 +9,43 @@ import torch.nn.functional as F
 import numpy as np
 
 # simple Module to normalize an image
+
+
 class Normalize(nn.Module):
-	def __init__(self, mean, std):
-		super(Normalize, self).__init__()
-		self.mean = torch.Tensor(mean)
-		self.std = torch.Tensor(std)
-	def forward(self, x):
-		return (x - self.mean.type_as(x)[None,:,None,None]) / self.std.type_as(x)[None,:,None,None]
+    def __init__(self, mean, std):
+        super(Normalize, self).__init__()
+        self.mean = torch.Tensor(mean)
+        self.std = torch.Tensor(std)
 
-class FCN(nn.Module):
+    def forward(self, x):
+        return (x - self.mean.type_as(x)[None, :, None, None]) / self.std.type_as(x)[None, :, None, None]
 
-	def __init__(self, device, num_neurons = [128, 64, 10]):
-		super(FCN, self).__init__()
 
-		self.device = device
-		self.num_neurons = num_neurons
-		self.norm = Normalize(mean=[0.1307], std=[0.3081])
-		self.create_parameters()
+class CNN(nn.Module):
 
-	def forward(self, x):
+    def __init__(self):
+        super(CNN, self).__init__()
 
-		x = self.norm(x)
-		x = x.view(x.size(0), -1)
-		self.NN = [None] * len(self.num_neurons)
-		self.NN[0] = F.relu(x @ self.w[0] + self.b[0]) + self.d[0]
-		self.NN[1] = F.relu(self.NN[0] @ self.w[1] + self.b[1]) + self.d[1]
-		self.NN[2] = F.softmax(self.NN[1] @ self.w[2], -1)
+        self.norm = Normalize(mean=[0.1307], std=[0.3081])
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=5,
+                               stride=1, padding=2, bias=False)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=5,
+                               stride=1, padding=2, bias=False)
+        self.fc1 = nn.Linear(7 * 7 * 64, 1024, bias=False)
+        self.fc2 = nn.Linear(1024, 10, bias=True)
 
-		return self.NN[2]
-		
-	def create_parameters(self):
+    def forward(self, x):
 
-		self.w = [None] * len(self.num_neurons)
-		self.w[0]=torch.tensor(0.1*torch.randn([784, self.num_neurons[0]]),requires_grad=True, device=self.device)
-		self.w[1]=torch.tensor(0.1*torch.randn([self.num_neurons[0], self.num_neurons[1]]), requires_grad=True, device=self.device)
-		self.w[2]=torch.tensor(0.1*torch.randn([self.num_neurons[1], self.num_neurons[2]]), requires_grad=True, device=self.device)
+        x = self.norm(x)
+        self.NN = [None] * 4
+        self.NN[0] = F.max_pool2d(F.relu(self.conv1(x)), (2, 2)) + self.d[0]
+        self.NN[1] = F.max_pool2d(F.relu(self.conv2(self.NN[0])), (2, 2))
+        self.NN[1] = self.NN[1].view(self.NN[1].size(0), -1) + self.d[1]
+        self.NN[2] = F.relu(self.fc1(self.NN[1])) + self.d[2]
+        self.NN[3] = self.fc2(self.NN[2])
 
-		self.b = [None] * (len(self.num_neurons) - 1)
-		self.b[0] = torch.zeros(self.num_neurons[0], requires_grad=True, device=self.device)
-		self.b[1] = torch.zeros(self.num_neurons[1], requires_grad=True, device=self.device)
+        return self.NN[3]
 
-		self.d = [None] * (len(self.num_neurons) - 1)
-	
-	
+    def create_parameters(self):
+
+        self.d = [None] * 3

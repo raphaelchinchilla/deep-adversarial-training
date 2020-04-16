@@ -20,7 +20,7 @@ def get_arguments():
 
 
     # Optimizer
-    parser.add_argument('-lr', '--learning_rate', type=float, default=0.01, metavar='LR', help='learning rate (default: 0.01)')
+    parser.add_argument('-lr', '--learning_rate', type=float, default=0.2, metavar='LR', help='learning rate (default: 0.01)')
     parser.add_argument('--momentum', type=float, default=0.5, metavar='M', help='SGD momentum (default: 0.5)')
     parser.add_argument('--weight_decay', type=float, default=0.0005, metavar='WD', help='Weight decay (default: 0.0005)')
 
