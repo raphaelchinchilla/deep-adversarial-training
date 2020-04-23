@@ -4,109 +4,65 @@ Date: 2020-03-09
 
 Description: Training and testing functions for neural models
 
-functions: 
+functions:
     train: Performs a single training epoch
     train_adversarial: Performs a single training epoch with adversarial images
     test: Evaluates model by computing accuracy with test set
     test: Evaluates model by computing accuracy with adversarial test set
 """
 
-import time
 from tqdm import tqdm
+from apex import amp
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deep_adv.adversary.norm_ball_attacks import RandomFastGradientSignMethod as RFGSM
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
-from deep_adv.adversary.layer_attacks import SingleStep
 
 
-def train(args, model, device, train_loader, optimizer, epoch):
-    start_time = time.time()
+def train(model, train_loader, optimizer, scheduler):
+    """ Train given model with train_loader and optimizer """
+
     model.train()
+    device = model.parameters().__next__().device
 
-    for batch_idx, (data, target) in enumerate(train_loader):
-
-        # Feed data to device ( e.g, GPU )
+    train_loss = 0
+    train_correct = 0
+    for data, target in train_loader:
         data, target = data.to(device), target.to(device)
+
         optimizer.zero_grad()
         output = model(data)
         cross_ent = nn.CrossEntropyLoss()
         loss = cross_ent(output, target)
-        loss.backward()
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
         optimizer.step()
+        scheduler.step()
 
-        if (batch_idx+1) % args.log_interval == 0 and batch_idx != 0:
-            pred = output.argmax(dim=1, keepdim=True)
-            correct = pred.eq(target.view_as(pred)).sum().item()
-            print(
-                f"Train Epoch: {epoch+1} {100. * (batch_idx+1) / len(train_loader):.2f}%\tLoss: {loss.item():.2f}\tAcc: {100.*correct/output.shape[0]:.2f}%\t Time: {time.time() - start_time:.2f} sec"
-                )
-            start_time = time.time()
+        train_loss += loss.item()
+        pred = output.argmax(dim=1, keepdim=True)
+        train_correct += pred.eq(target.view_as(pred)).sum().item()
+
+    train_size = len(train_loader.dataset)
+
+    return train_loss/train_size, train_correct/train_size
 
 
-def train_adversarial(
-    args, model, device, train_loader, optimizer, epoch, data_params, attack_params
-):
-    start_time = time.time()
+def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
+                           data_params, attack_params):
+
     model.train()
 
-    for batch_idx, (data, target) in enumerate(train_loader):
+    device = model.parameters().__next__().device
 
-        # Feed data to device ( e.g, GPU )
-        data, target = data.to(
-            device), target.to(device)
-
-        # Adversary
-        perturbs = PGD(
-            model,
-            data,
-            target,
-            device,
-            verbose=False,
-            data_params=data_params,
-            attack_params=attack_params,
-            )
-        data_adv = data + perturbs
-        data_adv = torch.clamp(data_adv, 0, 1)
-
-        optimizer.zero_grad()
-        output = model(
-            data_adv)
-        cross_ent = nn.CrossEntropyLoss()
-        loss = cross_ent(
-            output, target)
-        loss.backward()
-        optimizer.step()
-
-        if (batch_idx+1) % args.log_interval == 0 and batch_idx != 0:
-
-            pred_adv = output.argmax(
-                dim=1, keepdim=True)
-            correct_adv = pred_adv.eq(
-                target.view_as(pred_adv)).sum().item()
-
-            output = model(
-                data)
-            pred_clean = output.argmax(
-                dim=1, keepdim=True)
-            correct_clean = pred_clean.eq(
-                target.view_as(pred_clean)).sum().item()
-
-            print(
-                f"Train Epoch: {epoch+1} {100. * (batch_idx+1) / len(train_loader):.2f}%\tLoss: {loss.item():.2f}\tClean Acc: {100.*correct_clean/output.shape[0]:.2f}%\tAdv Acc: {100.*correct_adv/output.shape[0]:.2f}%\t Time: {time.time() - start_time:.2f} sec"
-                )
-            start_time = time.time()
-
-
-def train_deep_adversarial(
-    args, model, device, train_loader, optimizer, epoch, data_params, attack_params
-):
-    start_time = time.time()
-    model.train()
-
-    for batch_idx, (data, target) in enumerate(train_loader):
+    dist_loss = 0
+    dist_correct = 0
+    clean_loss = 0
+    clean_correct = 0
+    for data, target in train_loader:
 
         # Feed data to device ( e.g, GPU )
         data, target = data.to(
@@ -114,10 +70,15 @@ def train_deep_adversarial(
 
         model.d = [0, 0, 0]
         out_clean = model(data)
-        # breakpoint()
-        lamb = 0.001  # budget for perturbation
-        mu = 0.5  # adverserial step
-        DN(model, data, target, lamb, mu, device)
+
+        dn_args = dict(model=model,
+                       x=data,
+                       y_true=target,
+                       lamb=lamb,
+                       mu=mu,
+                       optimizer=optimizer)
+
+        DN(**dn_args)
         # print(model.d)
         # breakpoint()
 
@@ -125,98 +86,163 @@ def train_deep_adversarial(
         output = model(data)
         cross_ent = nn.CrossEntropyLoss()
         loss = cross_ent(output, target)
-        loss.backward()
+        loss_clean = cross_ent(out_clean, target)
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
         optimizer.step()
+        scheduler.step()
 
-        if (batch_idx+1) % args.log_interval == 0 and batch_idx != 0:
+        clean_loss += loss_clean.item()
+        pred_clean = out_clean.argmax(dim=1, keepdim=True)
+        clean_correct += pred_clean.eq(target.view_as(pred_clean)).sum().item()
 
-            pred_clean = out_clean.argmax(
-                dim=1, keepdim=True)
-            correct_clean = pred_clean.eq(
-                target.view_as(pred_clean)).sum().item()
+        dist_loss += loss.item()
+        pred_adv = output.argmax(dim=1, keepdim=True)
+        dist_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
 
-            pred_adv = output.argmax(
-                dim=1, keepdim=True)
-            correct_adv = pred_adv.eq(
-                target.view_as(pred_adv)).sum().item()
+    train_size = len(train_loader.dataset)
 
-            print(
-                f"Train Epoch: {epoch+1} {100. * (batch_idx+1) / len(train_loader):.2f}%\tLoss: {loss.item():.2f}\tClean Acc: {100.*correct_clean/output.shape[0]:.2f}%\tAdv Acc: {100.*correct_adv/output.shape[0]:.2f}%\t Time: {time.time() - start_time:.2f} sec"
-                )
-            start_time = time.time()
+    return clean_loss/train_size, clean_correct/train_size, dist_loss/train_size, dist_correct/train_size
 
 
-def test(args, model, device, test_loader):
+def train_fgsm_adversarial(model, train_loader, optimizer, scheduler, data_params, attack_params):
+    """ Train given model with train_loader and optimizer with RFGSM adversarial examples """
+
+    model.train()
+
+    device = model.parameters().__next__().device
+
+    train_loss = 0
+    train_correct = 0
+    for data, target in train_loader:
+        data, target = data.to(device), target.to(device)
+
+        fgsm_args = dict(net=model,
+                         x=data,
+                         y_true=target,
+                         optimizer=optimizer,
+                         verbose=False,
+                         data_params=data_params,
+                         attack_params=attack_params)
+        perturbs = RFGSM(**fgsm_args)
+
+        data_adv = data + perturbs
+
+        optimizer.zero_grad()
+        output = model(data_adv)
+        cross_ent = nn.CrossEntropyLoss()
+        loss = cross_ent(output, target)
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+        train_loss += loss.item()
+        pred_adv = output.argmax(dim=1, keepdim=True)
+        train_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
+
+    train_size = len(train_loader.dataset)
+
+    return train_loss/train_size, train_correct/train_size
+
+
+def train_adversarial(model, train_loader, optimizer, scheduler, data_params, attack_params):
+
+    model.train()
+
+    device = model.parameters().__next__().device
+
+    train_loss = 0
+    train_correct = 0
+    for data, target in train_loader:
+
+        data, target = data.to(device), target.to(device)
+
+        # Adversary
+        pgd_args = dict(net=model,
+                        x=data,
+                        y_true=target,
+                        optimizer=optimizer,
+                        verbose=False,
+                        data_params=data_params,
+                        attack_params=attack_params)
+        perturbs = PGD(**pgd_args)
+
+        data_adv = data + perturbs
+
+        optimizer.zero_grad()
+        output = model(data_adv)
+        cross_ent = nn.CrossEntropyLoss()
+        loss = cross_ent(output, target)
+        with amp.scale_loss(loss, optimizer) as scaled_loss:
+            scaled_loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+        train_loss += loss.item()
+        pred_adv = output.argmax(dim=1, keepdim=True)
+        train_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
+
+    train_size = len(train_loader.dataset)
+
+    return train_loss/train_size, train_correct/train_size
+
+
+def test(model, test_loader):
 
     model.eval()
 
+    device = model.parameters().__next__().device
+
     test_loss = 0
-    correct = 0
+    test_correct = 0
     with torch.no_grad():
         for data, target in test_loader:
-            data, target = data.to(
-                device), target.to(device)
+            data, target = data.to(device), target.to(device)
 
-            output = model(
-                data)
-            test_loss += F.cross_entropy(output,
-                                         target, reduction="sum").item()
-            pred = output.argmax(
-                dim=1, keepdim=True)
-            correct += pred.eq(
-                target.view_as(pred)).sum().item()
+            output = model(data)
+            cross_ent = nn.CrossEntropyLoss()
+            test_loss += cross_ent(output, target).item()
+            pred = output.argmax(dim=1, keepdim=True)
+            test_correct += pred.eq(target.view_as(pred)).sum().item()
+    test_size = len(test_loader.dataset)
 
-    # Divide summed-up loss by the number of datapoints in dataset
-    test_loss /= len(
-        test_loader.dataset)
-
-    # Print out Loss and Accuracy for test set
-    print(
-        f"\nTest set: Average loss: {test_loss:.2f}, Accuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.2f}%)\n"
-        )
+    return test_loss/test_size, test_correct/test_size
 
 
-def test_adversarial(args, model, device, test_loader, data_params, attack_params):
+def test_adversarial(model, test_loader, data_params, attack_params):
+
+    device = model.parameters().__next__().device
 
     for key in attack_params:
-        print(
-            key + ': ' + str(attack_params[key]))
-    # Set phase to testing
+        print(key + ': ' + str(attack_params[key]))
+
     model.eval()
 
     test_loss = 0
-    correct = 0
+    test_correct = 0
     for data, target in tqdm(test_loader):
 
-        data, target = data.to(
-            device), target.to(device)
+        data, target = data.to(device), target.to(device)
 
         # Attacks
-        perturbs = PGD(
-            model,
-            data,
-            target,
-            device,
-            data_params=data_params,
-            attack_params=attack_params,)
+        pgd_args = dict(net=model,
+                        x=data,
+                        y_true=target,
+                        data_params=data_params,
+                        attack_params=attack_params)
+        perturbs = PGD(**pgd_args)
         data += perturbs
-        data = torch.clamp(
-            data, 0, 1)
+        # breakpoint()
 
-        output = model(
-            data)
-        test_loss += F.cross_entropy(
-            output, target, reduction="sum").item()
-        pred = output.argmax(
-            dim=1, keepdim=True)
-        correct += pred.eq(
-            target.view_as(pred)).sum().item()
+        output = model(data)
 
-    # Divide summed-up loss by the number of datapoints in dataset
-    test_loss /= len(
-        test_loader.dataset)
+        cross_ent = nn.CrossEntropyLoss()
+        test_loss += cross_ent(output, target).item()
 
-    # Print out Loss and Accuracy for test set
-    print(
-        f"\nAdversarial test set (l_{attack_params['norm']}): Average loss: {test_loss:.2f}, Accuracy: {correct}/{len(test_loader.dataset)} ({100. * correct / len(test_loader.dataset):.2f}%)\n"
-        )
+        pred = output.argmax(dim=1, keepdim=True)
+        test_correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_size = len(test_loader.dataset)
+
+    return test_loss/test_size, test_correct/test_size

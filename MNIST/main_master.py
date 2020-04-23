@@ -72,6 +72,8 @@ def main():
                 "num_restarts": args.tr_num_restarts,
                 }
 
+            lamb = 0.01  # budget for perturbation
+            mu = 0.5  # adverserial step
             for epoch in range(1, args.epochs + 1):
                 train_deep_adversarial(
                     args,
@@ -80,6 +82,8 @@ def main():
                     train_loader,
                     optimizer,
                     epoch - 1,
+                    lamb,
+                    mu,
                     data_params,
                     attack_params,
                     )
@@ -97,6 +101,13 @@ def main():
                     + "checkpoints/"
                     + args.model
                     + "_deep_adv"
+                    + "_"
+                    + str(lamb)
+                    + "_"
+                    + str(mu)
+                    # + args.tr_norm
+                    # + "_"
+                    # + str(args.tr_epsilon)
                     + ".pt",
                     )
 

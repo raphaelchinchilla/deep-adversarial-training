@@ -8,17 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-# simple Module to normalize an image
-
-
-class Normalize(nn.Module):
-    def __init__(self, mean, std):
-        super(Normalize, self).__init__()
-        self.mean = torch.Tensor(mean)
-        self.std = torch.Tensor(std)
-
-    def forward(self, x):
-        return (x - self.mean.type_as(x)[None, :, None, None]) / self.std.type_as(x)[None, :, None, None]
+from deep_adv.MNIST.models.tools import Normalize
 
 
 class CNN(nn.Module):

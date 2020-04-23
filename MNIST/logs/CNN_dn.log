@@ -1,0 +1,175 @@
+[2020/04/22 23:02:54] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:02:54] - 
+
+[2020/04/22 23:03:00] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:03:00] - Distorting neurons
+[2020/04/22 23:03:12] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:03:12] - 
+
+[2020/04/22 23:03:19] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:03:19] - Distorting neurons
+[2020/04/22 23:06:43] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:06:43] - 
+
+[2020/04/22 23:06:50] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:06:50] - Distorting neurons
+[2020/04/22 23:07:25] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:07:25] - 
+
+[2020/04/22 23:07:31] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:07:31] - Distorting neurons
+[2020/04/22 23:08:22] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:08:22] - 
+
+[2020/04/22 23:08:29] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:08:29] - Distorting neurons
+[2020/04/22 23:09:00] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:09:00] - 
+
+[2020/04/22 23:09:08] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:09:08] - Distorting neurons
+[2020/04/22 23:09:52] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:09:52] - 
+
+[2020/04/22 23:10:00] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:10:00] - Distorting neurons
+[2020/04/22 23:16:09] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:16:09] - 
+
+[2020/04/22 23:16:16] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:16:16] - Distorting neurons
+[2020/04/22 23:17:00] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:17:00] - 
+
+[2020/04/22 23:17:06] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:17:06] - Distorting neurons
+[2020/04/22 23:17:58] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:17:58] - 
+
+[2020/04/22 23:18:06] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:18:06] - Distorting neurons
+[2020/04/22 23:18:54] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:18:54] - 
+
+[2020/04/22 23:19:28] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:19:28] - 
+
+[2020/04/22 23:19:34] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:19:34] - Distorting neurons
+[2020/04/22 23:21:14] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:21:14] - 
+
+[2020/04/22 23:21:22] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:21:22] - Distorting neurons
+[2020/04/22 23:23:05] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:23:05] - 
+
+[2020/04/22 23:23:13] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:23:13] - Distorting neurons
+[2020/04/22 23:24:40] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.1, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:24:40] - 
+
+[2020/04/22 23:24:47] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:24:47] - Distorting neurons
+[2020/04/22 23:25:57] - 1 	 70 	 	 0.0000 	 0.0460 	 0.1027 	 0.0509 	 0.0000
+[2020/04/22 23:25:57] - Test  	 loss: 0.0002 	 acc: 0.1004
+[2020/04/22 23:27:07] - 2 	 70 	 	 0.0000 	 0.0460 	 0.1027 	 0.0509 	 0.0000
+[2020/04/22 23:27:07] - Test  	 loss: 0.0002 	 acc: 0.1004
+[2020/04/22 23:27:36] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:27:36] - 
+
+[2020/04/22 23:27:44] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:27:44] - Distorting neurons
+[2020/04/22 23:28:53] - 1 	 69 	 	 0.0000 	 0.0460 	 0.1027 	 0.0776 	 0.0000
+[2020/04/22 23:28:53] - Test  	 loss: 0.0002 	 acc: 0.1004
+[2020/04/22 23:29:59] - 2 	 66 	 	 0.0000 	 0.0460 	 0.1027 	 0.0776 	 0.0000
+[2020/04/22 23:29:59] - Test  	 loss: 0.0002 	 acc: 0.1004
+[2020/04/22 23:30:16] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.001, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:30:16] - 
+
+[2020/04/22 23:30:23] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:30:23] - Distorting neurons
+[2020/04/22 23:31:35] - 1 	 72 	 	 0.0000 	 0.0460 	 0.1027 	 0.0461 	 0.0947
+[2020/04/22 23:31:35] - Test  	 loss: 0.0002 	 acc: 0.1004
+[2020/04/22 23:32:45] - 2 	 70 	 	 0.0000 	 0.0460 	 0.1027 	 0.0461 	 0.0947
+[2020/04/22 23:32:45] - Test  	 loss: 0.0002 	 acc: 0.1004
+[2020/04/22 23:32:49] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.001, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:32:49] - 
+
+[2020/04/22 23:32:57] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:32:57] - Distorting neurons
+[2020/04/22 23:34:03] - 1 	 66 	 	 0.0080 	 0.0118 	 0.8626 	 0.0097 	 0.8628
+[2020/04/22 23:34:03] - Test  	 loss: 0.0000 	 acc: 0.9768
+[2020/04/22 23:35:11] - 2 	 68 	 	 0.0160 	 0.0021 	 0.9786 	 0.0014 	 0.9789
+[2020/04/22 23:35:11] - Test  	 loss: 0.0000 	 acc: 0.9831
+[2020/04/22 23:36:20] - 3 	 69 	 	 0.0240 	 0.0014 	 0.9851 	 0.0009 	 0.9850
+[2020/04/22 23:36:20] - Test  	 loss: 0.0000 	 acc: 0.9862
+[2020/04/22 23:36:32] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:36:32] - 
+
+[2020/04/22 23:36:40] - Epoch 	 Seconds 	 LR 	 	 Train Loss 	 Train Acc
+[2020/04/22 23:36:40] - Distorting neurons
+[2020/04/22 23:37:53] - 1 	 73 	 	 0.0080 	 0.0123 	 0.8530 	 0.0165 	 0.7478
+[2020/04/22 23:37:53] - Test  	 loss: 0.0000 	 acc: 0.9692
+[2020/04/22 23:39:01] - 2 	 68 	 	 0.0160 	 0.0024 	 0.9739 	 0.0033 	 0.9524
+[2020/04/22 23:39:01] - Test  	 loss: 0.0000 	 acc: 0.9741
+[2020/04/22 23:39:39] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:39:39] - 
+
+[2020/04/22 23:39:46] - Distorting neurons
+[2020/04/22 23:39:46] - Epoch 	 Seconds 	 LR 	 	 Clean Loss - Clean Acc - Dist Loss - Dist Acc
+[2020/04/22 23:40:56] - 1 	 70 	 	 0.0080 	 0.0123 - 0.8532 - 0.0165 - 0.7474
+[2020/04/22 23:40:56] - Test  	 loss: 0.0000 	 acc: 0.9712
+[2020/04/22 23:41:08] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:41:08] - 
+
+[2020/04/22 23:41:16] - Distorting neurons
+[2020/04/22 23:41:16] - Epoch 	 Seconds 	 LR 	 	 Clean Loss - Clean Acc - Dist Loss - Dist Acc
+[2020/04/22 23:43:03] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:43:03] - 
+
+[2020/04/22 23:43:11] - Distorting neurons
+[2020/04/22 23:43:11] - Epoch 	 Seconds 	 LR 	 	 Clean Loss 	 Clean Acc 	 Dist Loss 	 Dist Acc
+[2020/04/22 23:44:20] - 1 	 69 	 	 0.0080 	 0.0123 	 0.8531 	 0.0165 	 0.7474
+[2020/04/22 23:44:20] - Test  	 loss: 0.0000 	 acc: 0.9716
+[2020/04/22 23:45:29] - 2 	 68 	 	 0.0160 	 0.0024 	 0.9740 	 0.0034 	 0.9519
+[2020/04/22 23:45:29] - Test  	 loss: 0.0000 	 acc: 0.9764
+[2020/04/22 23:46:36] - 3 	 67 	 	 0.0240 	 0.0017 	 0.9811 	 0.0027 	 0.9660
+[2020/04/22 23:46:36] - Test  	 loss: 0.0000 	 acc: 0.9863
+[2020/04/22 23:47:44] - 4 	 69 	 	 0.0320 	 0.0014 	 0.9842 	 0.0025 	 0.9707
+[2020/04/22 23:47:44] - Test  	 loss: 0.0000 	 acc: 0.9853
+[2020/04/22 23:48:52] - 5 	 67 	 	 0.0400 	 0.0014 	 0.9841 	 0.0025 	 0.9710
+[2020/04/22 23:48:52] - Test  	 loss: 0.0000 	 acc: 0.9844
+[2020/04/22 23:49:51] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:49:51] - 
+
+[2020/04/22 23:49:58] - Distorting neurons
+[2020/04/22 23:49:58] - Epoch 	 Seconds 	 LR 	 	 Clean Loss 	 Clean Acc 	 Dist Loss 	 Dist Acc
+[2020/04/22 23:51:10] - 1 	 72 	 	 0.0080 	 0.0123 	 0.8530 	 0.0165 	 0.7473
+[2020/04/22 23:51:10] - Test  	 loss: 0.0000 	 acc: 0.9708
+[2020/04/22 23:52:19] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:52:19] - 
+
+[2020/04/22 23:52:25] - Distorting neurons
+[2020/04/22 23:52:25] - Epoch 	 Seconds 	 LR 	 	 Clean Loss 	 Clean Acc 	 Dist Loss 	 Dist Acc
+[2020/04/22 23:52:37] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=100, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.4, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.5, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/04/22 23:52:37] - 
+
+[2020/04/22 23:52:44] - Distorting neurons
+[2020/04/22 23:52:44] - Epoch 	 Seconds 	 LR 	 	 Clean Loss 	 Clean Acc 	 Dist Loss 	 Dist Acc
+[2020/04/22 23:53:56] - 1 	 72 	 	 0.0080 	 0.0123 	 0.8533 	 0.0165 	 0.7477
+[2020/04/22 23:53:56] - Test  	 loss: 0.0000 	 acc: 0.9720
+[2020/04/22 23:55:03] - 2 	 67 	 	 0.0160 	 0.0024 	 0.9740 	 0.0033 	 0.9528
+[2020/04/22 23:55:03] - Test  	 loss: 0.0000 	 acc: 0.9741
+[2020/04/22 23:56:12] - 3 	 69 	 	 0.0240 	 0.0017 	 0.9811 	 0.0027 	 0.9654
+[2020/04/22 23:56:12] - Test  	 loss: 0.0000 	 acc: 0.9862
+[2020/04/22 23:57:20] - 4 	 68 	 	 0.0320 	 0.0015 	 0.9834 	 0.0026 	 0.9692
+[2020/04/22 23:57:20] - Test  	 loss: 0.0000 	 acc: 0.9853
+[2020/04/22 23:58:28] - 5 	 68 	 	 0.0400 	 0.0013 	 0.9842 	 0.0025 	 0.9709
+[2020/04/22 23:58:28] - Test  	 loss: 0.0000 	 acc: 0.9824
+[2020/04/22 23:59:37] - 6 	 69 	 	 0.0480 	 0.0014 	 0.9844 	 0.0027 	 0.9712
+[2020/04/22 23:59:37] - Test  	 loss: 0.0000 	 acc: 0.9879
+[2020/04/23 00:00:45] - 7 	 67 	 	 0.0560 	 0.0014 	 0.9842 	 0.0030 	 0.9701
+[2020/04/23 00:00:45] - Test  	 loss: 0.0000 	 acc: 0.9872
+[2020/04/23 00:01:53] - 8 	 68 	 	 0.0640 	 0.0014 	 0.9841 	 0.0032 	 0.9697
+[2020/04/23 00:01:53] - Test  	 loss: 0.0000 	 acc: 0.9886
