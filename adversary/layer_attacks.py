@@ -126,7 +126,9 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
         #     model.NN[0] = model.NN[0] + mu * model.NN[0].grad
         #     model.NN[1] = model.NN[1] + mu * model.NN[1].grad
         #     model.NN[2] = model.NN[2] + mu * model.NN[2].grad
+
         optimizer_dn.step()
+        optimizer_dn.zero_grad()
 
         # print(model.NN[0][0, 0, 0, 0])
         #
