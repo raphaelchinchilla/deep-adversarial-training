@@ -72,11 +72,14 @@ def main():
     x_min = 0.0
     x_max = 1.0
 
-    model = CNN().to(device)
+    if args.tr_attack == "None":
+        model = LeNet().to(device)
+    elif args.tr_attack == "dn":
+        model = CNN().to(device)
+    else:
+        raise NotImplementedError
 
-    print(model)
-
-    # breakpoint()
+    # logging.info(model)
 
     # Which optimizer to be used for training
     # optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
@@ -100,10 +103,10 @@ def main():
         if args.tr_attack == "None":
             logger.info("Standard training")
             logger.info('Epoch \t Seconds \t LR \t \t Train Loss \t Train Acc')
-            for epoch in tqdm(range(1, args.epochs + 1)):
+            for epoch in range(1, args.epochs + 1):
                 start_time = time.time()
-                train_loss, train_acc = train(model, device, train_loader, optimizer, scheduler)
-                test_loss, test_acc = test(model, device, test_loader)
+                train_loss, train_acc = train(model, train_loader, optimizer, scheduler)
+                test_loss, test_acc = test(model, test_loader)
                 end_time = time.time()
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
@@ -187,6 +190,7 @@ def main():
         logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
     # Attack network if args.attack_network is set to True (You can set that true by calling '-at' flag, default is False)
+    # breakpoint()
     if args.attack_network:
         data_params = {"x_min": x_min, "x_max": x_max}
         attack_params = {
@@ -197,14 +201,13 @@ def main():
             "random_start": args.rand,
             "num_restarts": args.num_restarts,
             }
-        test_adversarial(
-            args,
+        test_loss, test_acc = test_adversarial(
             model,
-            device,
             test_loader,
             data_params=data_params,
             attack_params=attack_params,
             )
+        logger.info(f'{args.attack} attacked \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
 
 if __name__ == "__main__":

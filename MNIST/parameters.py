@@ -15,8 +15,9 @@ def get_arguments():
                         metavar='', help='Directory for checkpoint and stuff')
 
     # Dataset
-    parser.add_argument('--dataset', type=str, default='mnist', choices=[
-                        "mnist", "fashion"], metavar='mnist/fashion', help='Which dataset to use (default: mnist)')
+    parser.add_argument('--dataset', type=str, default='mnist',
+                        choices=["mnist", "fashion"], metavar='mnist/fashion',
+                        help='Which dataset to use (default: mnist)')
 
     neural_net = parser.add_argument_group("neural_net", "Neural Network arguments")
 
@@ -31,7 +32,7 @@ def get_arguments():
     neural_net.add_argument("--lr_min", type=float, default=0., metavar="LR",
                             help="Learning rate min")
 
-    neural_net.add_argument("--lr_max", type=float, default=0.4, metavar="LR",
+    neural_net.add_argument("--lr_max", type=float, default=0.05, metavar="LR",
                             help="Learning rate max")
 
     neural_net.add_argument('--momentum', type=float, default=0.5,
@@ -45,7 +46,7 @@ def get_arguments():
                             help='input batch size for training (default: 50)')
     neural_net.add_argument('--test_batch_size', type=int, default=10000,
                             metavar='N', help='input batch size for testing (default: 1000)')
-    neural_net.add_argument('--epochs', type=int, default=100, metavar='N',
+    neural_net.add_argument('--epochs', type=int, default=20, metavar='N',
                             help='number of epochs to train (default: 10)')
 
     # Adversarial training parameters

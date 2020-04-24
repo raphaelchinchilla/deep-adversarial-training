@@ -14,6 +14,8 @@ import torchvision
 from torch import nn
 from apex import amp
 
+from deep_adv.utils.errors import GradientMaskingError
+
 
 def RandomFastGradientSignMethod(net, x, y_true, data_params, attack_params, optimizer=None, verbose=False):
     """
@@ -72,11 +74,15 @@ def FastGradientSignMethod(net, x, y_true, eps, data_params, norm="inf", optimiz
         perturbation : Single step perturbation
     """
     e = torch.zeros_like(x, requires_grad=True)
-    y_hat = net(x + e)
+    if x.device.type == "cuda":
+        y_hat = net(x + e).type(torch.cuda.DoubleTensor)
+    else:
+        y_hat = net(x + e).type(torch.DoubleTensor)
     criterion = nn.CrossEntropyLoss(reduction="none")
     loss = criterion(y_hat, y_true)
+    # breakpoint()
     if loss.min() <= 0:
-        raise NotImplementedError
+        raise GradientMaskingError("Gradient masking is happening")
     if optimizer is not None:
         with amp.scale_loss(loss, optimizer) as scaled_loss:
             scaled_loss.backward(gradient=torch.ones_like(

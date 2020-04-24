@@ -20,6 +20,7 @@ import torch.nn.functional as F
 from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
 from deep_adv.adversary.norm_ball_attacks import RandomFastGradientSignMethod as RFGSM
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
+from deep_adv.adversary.layer_attacks import DistortNeuronsStepeestDescent as DNSD
 
 
 def train(model, train_loader, optimizer, scheduler):
@@ -78,7 +79,7 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
                        mu=mu,
                        optimizer=optimizer)
 
-        DN(**dn_args)
+        DNSD(**dn_args)
         # print(model.d)
         # breakpoint()
 

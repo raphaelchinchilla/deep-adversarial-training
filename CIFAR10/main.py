@@ -87,10 +87,10 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum,
                           weight_decay=args.weight_decay)
 
-    # amp_args = dict(opt_level=args.opt_level, loss_scale=args.loss_scale, verbosity=False)
-    # if args.opt_level == 'O2':
-    #     amp_args['master_weights'] = args.master_weights
-    # model, optimizer = amp.initialize(model, optimizer, **amp_args)
+    amp_args = dict(opt_level=args.opt_level, loss_scale=args.loss_scale, verbosity=False)
+    if args.opt_level == 'O2':
+        amp_args['master_weights'] = args.master_weights
+    model, optimizer = amp.initialize(model, optimizer, **amp_args)
 
     lr_steps = args.epochs * len(train_loader)
     scheduler = torch.optim.lr_scheduler.CyclicLR(optimizer, base_lr=args.lr_min,
