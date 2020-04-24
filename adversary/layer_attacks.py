@@ -11,11 +11,13 @@ from tqdm import tqdm
 import numpy as np
 import math
 from apex import amp
+# from copy import deep_copy
 
 import torch
 import torchvision
 from torch import nn
 import torch.nn.functional as F
+import torch.optim as optim
 
 
 def DistortNeuronsStepeestDescent(model, x, y_true, lamb, mu, optimizer=None):
@@ -41,12 +43,12 @@ def DistortNeuronsStepeestDescent(model, x, y_true, lamb, mu, optimizer=None):
         loss = criterion(layers[-1](model.NN[-2]), y_true)
         loss -= lamb * \
             torch.norm(
-                (model.NN[0] - F.max_pool2d(F.relu(layers[0](x)), (2, 2))).view(x.size(0), -1), p=1, dim=1)
-        loss -= lamb * torch.norm((model.NN[1] - F.max_pool2d(F.relu(
+                (model.NN[0] - F.max_pool2d(F.leaky_relu(layers[0](x)), (2, 2))).view(x.size(0), -1), p=1, dim=1)
+        loss -= lamb * torch.norm((model.NN[1] - F.max_pool2d(F.leaky_relu(
             layers[1](model.NN[0])), (2, 2)).view(x.size(0), -1)).view(x.size(0), -1), p=1, dim=1)
         loss -= lamb * \
-            torch.norm(model.NN[2] - F.relu(layers[2]
-                                            (model.NN[1])), p=1, dim=1)
+            torch.norm(model.NN[2] - F.leaky_relu(layers[2]
+                                                  (model.NN[1])), p=1, dim=1)
 
         if optimizer is not None:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -93,19 +95,24 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
 
     layers = list(model.children())[1:]
 
-    for _ in range(num_iters):
-        for i in range(len(model.NN)-1):
-            model.NN[i].requires_grad_(True).retain_grad()
+    NN_new = [None] * (len(model.NN)-1)
+    for i in range(len(NN_new)):
+        NN_new[i] = model.NN[i].detach().clone()
+        NN_new[i].requires_grad_(True).retain_grad()
 
-        loss = criterion(layers[-1](model.NN[-2]), y_true)
-        loss -= lamb * \
+    optimizer_dn = optim.Adam(NN_new, lr=0.01)
+
+    for _ in range(num_iters):
+
+        loss = -criterion(layers[-1](NN_new[-1]), y_true)
+        loss += lamb * \
             torch.norm(
-                (model.NN[0] - F.max_pool2d(F.relu(layers[0](x)), (2, 2))).view(x.size(0), -1), p=1, dim=1)
-        loss -= lamb * torch.norm((model.NN[1] - F.max_pool2d(F.relu(
-            layers[1](model.NN[0])), (2, 2)).view(x.size(0), -1)).view(x.size(0), -1), p=1, dim=1)
-        loss -= lamb * \
-            torch.norm(model.NN[2] - F.relu(layers[2]
-                                            (model.NN[1])), p=1, dim=1)
+                (NN_new[0] - F.max_pool2d(F.relu(layers[0](x)), (2, 2))).view(x.size(0), -1), p=1, dim=1)
+        loss += lamb * torch.norm((NN_new[1] - F.max_pool2d(F.relu(
+            layers[1](NN_new[0])), (2, 2)).view(x.size(0), -1)).view(x.size(0), -1), p=1, dim=1)
+        loss += lamb * \
+            torch.norm(NN_new[2] - F.relu(layers[2]
+                                          (NN_new[1])), p=1, dim=1)
 
         if optimizer is not None:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -114,11 +121,12 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
         else:
             loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float), retain_graph=True)
 
-        with torch.no_grad():
-            # print(model.NN[0].grad[0, 0, 0, 0])
-            model.NN[0] = model.NN[0] + mu * model.NN[0].grad
-            model.NN[1] = model.NN[1] + mu * model.NN[1].grad
-            model.NN[2] = model.NN[2] + mu * model.NN[2].grad
+        # with torch.no_grad():
+        #     # print(model.NN[0].grad[0, 0, 0, 0])
+        #     model.NN[0] = model.NN[0] + mu * model.NN[0].grad
+        #     model.NN[1] = model.NN[1] + mu * model.NN[1].grad
+        #     model.NN[2] = model.NN[2] + mu * model.NN[2].grad
+        optimizer_dn.step()
 
         # print(model.NN[0][0, 0, 0, 0])
         #
@@ -126,14 +134,14 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
         # model.NN[2].grad.zero_()
     # breakpoint()
 
-    for i in range(len(model.NN)-1):
-        model.NN[i].requires_grad_(False)
+    # for i in range(len(model.NN)-1):
+    #     model.NN[i].requires_grad_(False)
 
-    model.d[0] = model.NN[0] - F.max_pool2d(F.relu(layers[0](x)), (2, 2))
-    model.d[1] = model.NN[1] - \
-        F.max_pool2d(F.relu(layers[1](model.NN[0])),
+    model.d[0] = NN_new[0] - F.max_pool2d(F.relu(layers[0](x)), (2, 2))
+    model.d[1] = NN_new[1] - \
+        F.max_pool2d(F.relu(layers[1](NN_new[0])),
                      (2, 2)).view(x.size(0), -1)
-    model.d[2] = model.NN[2] - F.relu(layers[2](model.NN[1]))
+    model.d[2] = NN_new[2] - F.relu(layers[2](NN_new[1]))
 
 
 def SingleStep(net, layers, y_true, eps, lamb, norm="inf"):

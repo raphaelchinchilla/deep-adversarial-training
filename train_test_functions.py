@@ -76,10 +76,9 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
                        x=data,
                        y_true=target,
                        lamb=lamb,
-                       mu=mu,
-                       optimizer=optimizer)
+                       mu=mu)
 
-        DNSD(**dn_args)
+        DN(**dn_args)
         # print(model.d)
         # breakpoint()
 

@@ -28,10 +28,10 @@ class CNN(nn.Module):
 
         x = self.norm(x)
         self.NN = [None] * 4
-        self.NN[0] = F.max_pool2d(F.relu(self.conv1(x)), (2, 2)) + self.d[0]
-        self.NN[1] = F.max_pool2d(F.relu(self.conv2(self.NN[0])), (2, 2))
+        self.NN[0] = F.max_pool2d(F.leaky_relu(self.conv1(x)), (2, 2)) + self.d[0]
+        self.NN[1] = F.max_pool2d(F.leaky_relu(self.conv2(self.NN[0])), (2, 2))
         self.NN[1] = self.NN[1].view(self.NN[1].size(0), -1) + self.d[1]
-        self.NN[2] = F.relu(self.fc1(self.NN[1])) + self.d[2]
+        self.NN[2] = F.leaky_relu(self.fc1(self.NN[1])) + self.d[2]
         self.NN[3] = self.fc2(self.NN[2])
 
         return self.NN[3]

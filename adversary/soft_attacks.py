@@ -7,7 +7,7 @@ import torchvision
 from torch import nn
 from apex import amp
 
-from adv_ml.utils.utils import cross_entropy_one_hot
+from deep_adv.utils.utils import cross_entropy_one_hot
 
 
 def soft_attack_single_step(net, x, y_soft_vector, data_params, attack_params, optimizer=None):
