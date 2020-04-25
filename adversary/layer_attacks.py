@@ -100,7 +100,7 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
         NN_new[i] = model.NN[i].detach().clone()
         NN_new[i].requires_grad_(True).retain_grad()
 
-    optimizer_dn = optim.Adam(NN_new, lr=0.01)
+    optimizer_dn = optim.Adam(NN_new, lr=mu)
 
     for _ in range(num_iters):
 

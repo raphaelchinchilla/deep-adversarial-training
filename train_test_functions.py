@@ -43,7 +43,7 @@ def train(model, train_loader, optimizer, scheduler):
         optimizer.step()
         scheduler.step()
 
-        train_loss += loss.item()
+        train_loss += loss.item() * data.size(0)
         pred = output.argmax(dim=1, keepdim=True)
         train_correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -92,11 +92,11 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
         optimizer.step()
         scheduler.step()
 
-        clean_loss += loss_clean.item()
+        clean_loss += loss_clean.item() * data.size(0)
         pred_clean = out_clean.argmax(dim=1, keepdim=True)
         clean_correct += pred_clean.eq(target.view_as(pred_clean)).sum().item()
 
-        dist_loss += loss.item()
+        dist_loss += loss.item() * data.size(0)
         pred_adv = output.argmax(dim=1, keepdim=True)
         dist_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
 
@@ -137,7 +137,7 @@ def train_fgsm_adversarial(model, train_loader, optimizer, scheduler, data_param
         optimizer.step()
         scheduler.step()
 
-        train_loss += loss.item()
+        train_loss += loss.item() * data.size(0)
         pred_adv = output.argmax(dim=1, keepdim=True)
         train_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
 
@@ -179,7 +179,7 @@ def train_adversarial(model, train_loader, optimizer, scheduler, data_params, at
         optimizer.step()
         scheduler.step()
 
-        train_loss += loss.item()
+        train_loss += loss.item() * data.size(0)
         pred_adv = output.argmax(dim=1, keepdim=True)
         train_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
 
@@ -202,7 +202,7 @@ def test(model, test_loader):
 
             output = model(data)
             cross_ent = nn.CrossEntropyLoss()
-            test_loss += cross_ent(output, target).item()
+            test_loss += cross_ent(output, target).item() * data.size(0)
             pred = output.argmax(dim=1, keepdim=True)
             test_correct += pred.eq(target.view_as(pred)).sum().item()
     test_size = len(test_loader.dataset)
@@ -238,7 +238,7 @@ def test_adversarial(model, test_loader, data_params, attack_params):
         output = model(data)
 
         cross_ent = nn.CrossEntropyLoss()
-        test_loss += cross_ent(output, target).item()
+        test_loss += cross_ent(output, target).item() * data.size(0)
 
         pred = output.argmax(dim=1, keepdim=True)
         test_correct += pred.eq(target.view_as(pred)).sum().item()

@@ -79,7 +79,6 @@ def main():
         model = torch.nn.DataParallel(model)
         cudnn.benchmark = True
 
-    print(model)
     logger.info(model)
     logger.info("\n")
 
@@ -100,10 +99,10 @@ def main():
 
     # Train network if args.train is set to True (You can set that true by calling '-tr' flag, default is False)
     logger.info('Epoch \t Seconds \t LR \t \t Train Loss \t Train Acc')
-    # print('Epoch \t Seconds \t LR \t \t Train Loss \t Train Acc')
+
     if args.train:
         if args.tr_attack == "None":
-            print("Standard training")
+            logger.info("Standard training")
             for epoch in tqdm(range(1, args.epochs + 1)):
                 start_time = time.time()
                 train_loss, train_acc = train(model, device, train_loader, optimizer, scheduler)
@@ -112,8 +111,6 @@ def main():
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
                 logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
-                print(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
-                print(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
             # Save model parameters
             if args.save_model:
@@ -123,7 +120,7 @@ def main():
                            path.join(args.directory + "checkpoints/", args.model + ".pt"))
 
         elif args.tr_attack == "fgsm":
-            print("FGSM adversarial training")
+            logger.info("FGSM adversarial training")
             for epoch in tqdm(range(1, args.epochs + 1)):
                 start_time = time.time()
                 data_params = {"x_min": x_min, "x_max": x_max}
@@ -144,8 +141,6 @@ def main():
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
                 logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
-                print(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
-                print(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
             # Save model parameters
             if args.save_model:
@@ -159,7 +154,7 @@ def main():
                                      + ".pt"))
     # Train network if args.train_adversarial is set to True (You can set that true by calling '-tra' flag, default is False)
         elif args.tr_attack == "pgd":
-            print("PGD adversarial training")
+            logger.info("PGD adversarial training")
             data_params = {"x_min": x_min, "x_max": x_max}
             attack_params = {
                 "norm": args.tr_norm,
@@ -179,8 +174,6 @@ def main():
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
                 logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
-                print(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
-                print(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
             # Save model parameters
             if args.save_model:
@@ -236,7 +229,6 @@ def main():
         logger.info("Clean test accuracy")
         test_loss, test_acc = test(model, device, test_loader)
         logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
-        # print(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
     if args.attack_network:
         data_params = {"x_min": x_min, "x_max": x_max}
@@ -252,7 +244,7 @@ def main():
                                                    data_params=data_params,
                                                    attack_params=attack_params)
         logger.info(f'Attack  \t loss: {attack_loss:.4f} \t acc: {attack_acc:.4f}')
-        print(f'Attack  \t loss: {attack_loss:.4f} \t acc: {attack_acc:.4f}')
+
     # if args.black_box:
     #     attack_loader = cifar10_black_box(args)
 

@@ -10,7 +10,7 @@ def get_arguments():
     parser = argparse.ArgumentParser(description="PyTorch CIFAR10")
 
     # Directory
-    parser.add_argument("--directory", type=str, default="/home/metehan/adv_ml/CIFAR10/",
+    parser.add_argument("--directory", type=str, default="/home/metehan/deep_adv/CIFAR10/",
                         metavar="", help="Directory of experiments",
                         )
 

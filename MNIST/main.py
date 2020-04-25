@@ -53,9 +53,9 @@ def main():
         level=logging.INFO,
         # filename=args.directory + 'logs/' + args.model + '_' + args.tr_attack + '.log',
         handlers=[
-                logging.FileHandler(args.directory + 'logs/' + args.model + \
-                                    '_' + args.tr_attack + '.log'),
-                logging.StreamHandler()
+            logging.FileHandler(args.directory + 'logs/' + args.model + \
+                                '_' + args.tr_attack + '.log'),
+            logging.StreamHandler()
             ])
     logger.info(args)
     logger.info("\n")
