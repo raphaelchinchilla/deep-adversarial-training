@@ -4,29 +4,36 @@ Date: 2020-03-09
 
 Description: Attack models with l_{p} norm constraints
 
-Attacks: FastGradientSignMethod(FGSM), ProjectedGradientDescent(PGD)
+Attacks: RandomFastGradientSignMethod   (R-FGSM)
+         FastGradientSignMethod         (FGSM)
+         ProjectedGradientDescent       (PGD)
 """
 
 from tqdm import tqdm
+from apex import amp
 
 import torch
 import torchvision
 from torch import nn
-from apex import amp
 
 from deep_adv.utils.errors import GradientMaskingError
 
 
-def RandomFastGradientSignMethod(net, x, y_true, data_params, attack_params, optimizer=None, verbose=False):
+def RandomFastGradientSignMethod(net, x, y_true, data_params, attack_params, optimizer=None):
     """
     Input :
-        net : Neural Network (Classifier)
-        x : Inputs to the net
-        y_true : Labels
-        eps : attack budget
-        norm : attack budget norm
+        net : Neural Network            (torch.nn.Module)
+        x : Inputs to the net           (Batch)
+        y_true : Labels                 (Batch)
+        data_params :
+            x_min:  Minimum possible value of x (min pixel value)   (Float)
+            x_max:  Maximum possible value of x (max pixel value)   (Float)
+        attack_params :
+            norm:   Attack norm         (Str)
+            eps:    Attack budget       (Float)
+            alpha:  Attack step size    (Float)
     Output:
-        perturbation : Single step perturbation
+        perturbation : Single step perturbation (Clamped with input limits)
     """
     if attack_params["norm"] == "inf":
         e = torch.rand_like(x) * 2 * attack_params['eps'] - attack_params['eps']
@@ -65,13 +72,17 @@ def RandomFastGradientSignMethod(net, x, y_true, data_params, attack_params, opt
 def FastGradientSignMethod(net, x, y_true, eps, data_params, norm="inf", optimizer=None):
     """
     Input :
-        net : Neural Network (Classifier)
-        x : Inputs to the net
-        y_true : Labels
-        eps : attack budget
-        norm : attack budget norm
+        net : Neural Network                                        (torch.nn.Module)
+        x : Inputs to the net                                       (Batch)
+        y_true : Labels                                             (Batch)
+        eps:    Attack budget                                       (Float)
+        data_params :
+            x_min:  Minimum possible value of x (min pixel value)   (Float)
+            x_max:  Maximum possible value of x (max pixel value)   (Float)
+        norm:   Attack norm                                         (Str)
+        optimizer:  Optimizer (if None apex is not used)            (torch.nn.optim)
     Output:
-        perturbation : Single step perturbation
+        perturbation : Single step perturbation (Clamped with input limits)
     """
     e = torch.zeros_like(x, requires_grad=True)
     if x.device.type == "cuda":
@@ -80,9 +91,8 @@ def FastGradientSignMethod(net, x, y_true, eps, data_params, norm="inf", optimiz
         y_hat = net(x + e).type(torch.DoubleTensor)
     criterion = nn.CrossEntropyLoss(reduction="none")
     loss = criterion(y_hat, y_true)
-    # breakpoint()
-    if loss.min() <= 0:
-        raise GradientMaskingError("Gradient masking is happening")
+    # if loss.min() <= 0:
+    #     raise GradientMaskingError("Gradient masking is happening")
     if optimizer is not None:
         with amp.scale_loss(loss, optimizer) as scaled_loss:
             scaled_loss.backward(gradient=torch.ones_like(
@@ -101,37 +111,28 @@ def FastGradientSignMethod(net, x, y_true, eps, data_params, norm="inf", optimiz
     return perturbation
 
 
-def ProjectedGradientDescent(net, x, y_true, optimizer=None, verbose=True,
-                             data_params={"x_min": 0, "x_max": 1},
-                             attack_params={
-                                 "norm": "inf",
-                                 "eps": 8.0 / 255.0,
-                                 "step_size": 8.0 / 255.0 / 10,
-                                 "num_steps": 100,
-                                 "random_start": True,
-                                 "num_restarts": 1,
-                                 },
-                             ):
+def ProjectedGradientDescent(net, x, y_true, data_params, attack_params, optimizer=None, verbose=True):
     """
     Input :
-        net : Neural Network (Classifier)
-        x : Inputs to the net
-        y_true : Labels
-        data_params: Data parameters as dictionary
-                x_min : Minimum legal value for elements of x
-                x_max : Maximum legal value for elements of x
+        net : Neural Network            (torch.nn.Module)
+        x : Inputs to the net           (Batch)
+        y_true : Labels                 (Batch)
+        optimizer:  Optimizer           (torch.nn.optim)
+        verbose: Verbosity              (Bool)
+        data_params :
+            x_min:  Minimum possible value of x (min pixel value)   (Float)
+            x_max:  Maximum possible value of x (max pixel value)   (Float)
         attack_params : Attack parameters as a dictionary
-                norm : Norm of attack
-                eps : Attack budget
-                step_size : Attack budget for each iteration
-                num_steps : Number of iterations
-                random_start : Randomly initialize image with perturbation
-                num_restarts : Number of restarts
+                norm : Norm of attack                               (Str)
+                eps : Attack budget                                 (Float)
+                step_size : Attack budget for each iteration        (Float)
+                num_steps : Number of iterations                    (Int)
+                random_start : Randomly initialize image with perturbation  (Bool)
+                num_restarts : Number of restarts                           (Int)
     Output:
         perturbs : Perturbations for given batch
     """
 
-    # fooled_indices = np.array(y_true.shape[0])
     perturbs = torch.zeros_like(x)
 
     if verbose and attack_params["num_restarts"] > 1:
@@ -162,7 +163,6 @@ def ProjectedGradientDescent(net, x, y_true, optimizer=None, verbose=True,
                                                                data_params["x_max"]),
                                               y_true, attack_params["step_size"],
                                               data_params, attack_params["norm"], optimizer)
-            # breakpoint()
             if attack_params["norm"] == "inf":
                 perturb = torch.clamp(perturb, -attack_params["eps"], attack_params["eps"])
             else:
@@ -180,5 +180,4 @@ def ProjectedGradientDescent(net, x, y_true, optimizer=None, verbose=True,
 
     perturbs.data = torch.max(
         torch.min(perturbs, data_params["x_max"] - x), data_params["x_min"] - x)
-    # breakpoint()
     return perturbs

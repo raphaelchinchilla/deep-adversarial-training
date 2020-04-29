@@ -2,7 +2,7 @@
 
 Example Run
 
-python -m adv_ml.CIFAR10.main --model ResNetMadry -tr -tra fgsm -at -Ni 7
+python -m deep_adv.CIFAR10.main --model ResNetMadry -tr -tra fgsm -at -Ni 7
 
 """
 import time

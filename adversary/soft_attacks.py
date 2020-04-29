@@ -1,24 +1,36 @@
+"""
+Authors: Metehan Cekic
+Date: 2020-04-23
 
+Description: Attack code to aim soft predictions
+
+Funcs: soft_attack_single_step
+       iterative_soft_attack
+
+"""
 
 from tqdm import tqdm
+from apex import amp
 
 import torch
 import torchvision
 from torch import nn
-from apex import amp
 
-from deep_adv.utils.utils import cross_entropy_one_hot
+from adversary.utils import cross_entropy_one_hot
 
 
 def soft_attack_single_step(net, x, y_soft_vector, data_params, attack_params, optimizer=None):
+
     if attack_params["norm"] == "inf":
         e = torch.rand_like(x) * 2 * attack_params['eps'] - attack_params['eps']
 
     e = torch.zeros_like(x, requires_grad=True)
-    y_hat = net(x + e)
 
-    # criterion = nn.MSELoss(reduction="none")
-    # loss = criterion(y_hat, y_soft_vector).sum(dim=1)
+    if x.device.type == "cuda":
+        y_hat = net(x + e).type(torch.cuda.DoubleTensor)
+    else:
+        y_hat = net(x + e).type(torch.DoubleTensor)
+
     loss = cross_entropy_one_hot(y_hat, y_soft_vector)
 
     loss.backward(gradient=torch.ones(y_soft_vector.size(
@@ -38,17 +50,7 @@ def soft_attack_single_step(net, x, y_soft_vector, data_params, attack_params, o
     return perturbation
 
 
-def iterative_soft_attack(net, x, y_soft_vector, optimizer=None, verbose=False,
-                          data_params={"x_min": 0, "x_max": 1},
-                          attack_params={
-                              "norm": "inf",
-                              "eps": 8.0 / 255.0,
-                              "step_size": 8.0 / 255.0 / 10,
-                              "num_steps": 100,
-                              "random_start": True,
-                              "num_restarts": 1,
-                              },
-                          ):
+def iterative_soft_attack(net, x, y_soft_vector, data_params, attack_params, optimizer=None, verbose=False):
     """
     Input :
         net : Neural Network (Classifier)
@@ -71,12 +73,7 @@ def iterative_soft_attack(net, x, y_soft_vector, optimizer=None, verbose=False,
     # fooled_indices = np.array(y_true.shape[0])
     perturbs = torch.zeros_like(x)
 
-    if verbose and attack_params["num_restarts"] > 1:
-        restarts = tqdm(range(attack_params["num_restarts"]))
-    else:
-        restarts = range(attack_params["num_restarts"])
-
-    if attack_params["random_start"] or attack_params["num_restarts"] > 1:
+    if attack_params["random_start"]:
         if attack_params["norm"] == "inf":
             perturb = (2 * torch.rand_like(x) - 1) * attack_params["eps"]
         else:
@@ -87,7 +84,7 @@ def iterative_soft_attack(net, x, y_soft_vector, optimizer=None, verbose=False,
     else:
         perturb = torch.zeros_like(x, dtype=torch.float)
 
-    if verbose == True:
+    if verbose:
         iters = tqdm(range(attack_params["num_steps"]))
     else:
         iters = range(attack_params["num_steps"])
@@ -96,12 +93,11 @@ def iterative_soft_attack(net, x, y_soft_vector, optimizer=None, verbose=False,
         perturb += soft_attack_single_step(net, torch.clamp(x+perturb, data_params["x_min"],
                                                             data_params["x_max"]),
                                            y_soft_vector, data_params, attack_params, optimizer)
-        # breakpoint()
-        # if attack_params["norm"] == "inf":
-        #     perturb = torch.clamp(perturb, -attack_params["eps"], attack_params["eps"])
-        # else:
-        #     perturb = (perturb * attack_params["eps"] /
-        #                perturb.view(x.shape[0], -1).norm(p=attack_params["norm"], dim=-1).view(-1, 1, 1, 1))
+        if attack_params["norm"] == "inf":
+            perturb = torch.clamp(perturb, -attack_params["eps"], attack_params["eps"])
+        else:
+            perturb = (perturb * attack_params["eps"] /
+                       perturb.view(x.shape[0], -1).norm(p=attack_params["norm"], dim=-1).view(-1, 1, 1, 1))
 
         out = torch.nn.functional.softmax(net(x+perturb))
         print(out[0])
@@ -110,5 +106,5 @@ def iterative_soft_attack(net, x, y_soft_vector, optimizer=None, verbose=False,
 
     perturbs.data = torch.max(
         torch.min(perturbs, data_params["x_max"] - x), data_params["x_min"] - x)
-    # breakpoint()
+
     return perturbs

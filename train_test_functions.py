@@ -21,6 +21,7 @@ from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
 from deep_adv.adversary.norm_ball_attacks import RandomFastGradientSignMethod as RFGSM
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
 from deep_adv.adversary.layer_attacks import DistortNeuronsStepeestDescent as DNSD
+from deep_adv.adversary.layer_attacks import distort_before_activation as DBA
 
 
 def train(model, train_loader, optimizer, scheduler):
@@ -79,8 +80,8 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
                        mu=mu)
 
         DN(**dn_args)
-        # print(model.d)
-        # breakpoint()
+        # DNSD(**dn_args)
+        # DBA(**dn_args)
 
         optimizer.zero_grad()
         output = model(data)

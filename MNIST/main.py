@@ -3,7 +3,7 @@ Main running script for testing and training of fixed bias model implemented wit
 
 Example Run
 
-python -m deep_adv.MNIST.main -tr -adv -sm -at
+python -m deep_adv.MNIST.main -at -tra dn -l 0.001 -m 0.1 -tr -sm --epochs 10
 """
 
 
@@ -25,7 +25,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import MultiStepLR
 
 from deep_adv.MNIST.models.layers import LeNet
-from deep_adv.MNIST.models.lowapi import CNN
+from deep_adv.MNIST.models.lowapi import CNN1, CNN2
 from deep_adv.train_test_functions import (
     train,
     train_adversarial,
@@ -75,7 +75,9 @@ def main():
     if args.tr_attack == "None":
         model = LeNet().to(device)
     elif args.tr_attack == "dn":
-        model = CNN().to(device)
+        model = CNN1().to(device)
+    elif args.tr_attack == "dba":
+        model = CNN2().to(device)
     else:
         raise NotImplementedError
 
@@ -118,7 +120,7 @@ def main():
                     os.makedirs(args.directory + "checkpoints/")
                 torch.save(model.state_dict(),
                            path.join(args.directory + "checkpoints/", args.model + ".pt"))
-        elif args.tr_attack == "dn":
+        elif args.tr_attack == "dn" or args.tr_attack == "dba":
             logger.info("Distorting neurons")
             logger.info('Epoch \t Seconds \t LR \t \t Clean Loss \t Clean Acc \t Dist Loss \t Dist Acc')
             data_params = {"x_min": x_min, "x_max": x_max}
@@ -178,9 +180,9 @@ def main():
             model.load_state_dict(
                 torch.load(path.join(args.directory + 'checkpoints/', args.model + ".pt",))
                 )
-        elif args.tr_attack == "pgd":
-            checkpoint_name = args.directory + "checkpoints/" + args.model + \
-                "_deep_adv_" + str(lamb) + "_" + str(mu) + ".pt"
+        elif args.tr_attack == "dn" or args.tr_attack == "dba":
+            checkpoint_name = args.directory + "checkpoints/" + \
+                args.model + "_deep_adv" + "_" + str(lamb) + "_" + str(mu) + ".pt"
             model.load_state_dict(torch.load(checkpoint_name))
         else:
             raise NotImplementedError
