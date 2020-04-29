@@ -82,7 +82,7 @@ def DistortNeuronsStepeestDescent(model, x, y_true, lamb, mu, optimizer=None):
 def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
 
     model.eval()
-    num_iters = 10
+    num_iters = 30
     device = model.parameters().__next__().device
 
     # model.d[0] = torch.randn(x.size(0), 32, 14, 14).to(
