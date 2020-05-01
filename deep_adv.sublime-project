@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "."
+		},
+		{
+			"path": "/Users/metehan/Desktop/lab/pytorch-adversarial-attacks"
 		}
 	]
 }

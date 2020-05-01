@@ -24,7 +24,8 @@ import torch.nn as nn
 from torchvision import datasets, transforms
 
 from deep_adv.utils import plot_settings
-from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+# from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from attacks import PGD
 
 
 mpl.rc("text", usetex=True)

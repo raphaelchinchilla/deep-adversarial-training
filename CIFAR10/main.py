@@ -19,13 +19,13 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import MultiStepLR
 
-from adv_ml.CIFAR10.models.resnet import ResNet34
-from adv_ml.CIFAR10.models.resnet_new import ResNet, ResNetWide
-from adv_ml.CIFAR10.models.preact_resnet import PreActResNet18
-from adv_ml.train_test_functions import train, train_fgsm_adversarial, train_adversarial, test, test_adversarial
+from deep_adv.CIFAR10.models.resnet import ResNet34
+from deep_adv.CIFAR10.models.resnet_new import ResNet, ResNetWide
+from deep_adv.CIFAR10.models.preact_resnet import PreActResNet18
+from deep_adv.train_test_functions import train, train_fgsm_adversarial, train_adversarial, test, test_adversarial
 
-from adv_ml.CIFAR10.parameters import get_arguments
-from adv_ml.CIFAR10.read_datasets import cifar10, cifar10_black_box
+from deep_adv.CIFAR10.parameters import get_arguments
+from deep_adv.CIFAR10.read_datasets import cifar10, cifar10_black_box
 
 
 logger = logging.getLogger(__name__)
@@ -105,8 +105,8 @@ def main():
             logger.info("Standard training")
             for epoch in tqdm(range(1, args.epochs + 1)):
                 start_time = time.time()
-                train_loss, train_acc = train(model, device, train_loader, optimizer, scheduler)
-                test_loss, test_acc = test(model, device, test_loader)
+                train_loss, train_acc = train(model, train_loader, optimizer, scheduler)
+                test_loss, test_acc = test(model, test_loader)
                 end_time = time.time()
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
@@ -133,10 +133,10 @@ def main():
                     "random_start": args.tr_rand,
                     "num_restarts": args.tr_num_restarts,
                     }
-                train_loss, train_acc = train_fgsm_adversarial(model, device, train_loader,
+                train_loss, train_acc = train_fgsm_adversarial(model,  train_loader,
                                                                optimizer, scheduler, data_params,
                                                                attack_params)
-                test_loss, test_acc = test(model, device, test_loader)
+                test_loss, test_acc = test(model, test_loader)
                 end_time = time.time()
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
@@ -167,9 +167,9 @@ def main():
 
             for epoch in tqdm(range(1, args.epochs + 1)):
                 start_time = time.time()
-                train_loss, train_acc = train_adversarial(model, device, train_loader, optimizer,
+                train_loss, train_acc = train_adversarial(model,  train_loader, optimizer,
                                                           scheduler, data_params, attack_params)
-                test_loss, test_acc = test(model, device, test_loader)
+                test_loss, test_acc = test(model, test_loader)
                 end_time = time.time()
                 lr = scheduler.get_lr()[0]
                 logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
@@ -227,7 +227,7 @@ def main():
             raise NotImplementedError
 
         logger.info("Clean test accuracy")
-        test_loss, test_acc = test(model, device, test_loader)
+        test_loss, test_acc = test(model, test_loader)
         logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
 
     if args.attack_network:
@@ -240,7 +240,7 @@ def main():
             "random_start": args.rand,
             "num_restarts": args.num_restarts,
             }
-        attack_loss, attack_acc = test_adversarial(model, device, test_loader,
+        attack_loss, attack_acc = test_adversarial(model, test_loader,
                                                    data_params=data_params,
                                                    attack_params=attack_params)
         logger.info(f'Attack  \t loss: {attack_loss:.4f} \t acc: {attack_acc:.4f}')
@@ -248,7 +248,7 @@ def main():
     # if args.black_box:
     #     attack_loader = cifar10_black_box(args)
 
-    #     test(model, device, attack_loader)
+    #     test(model, attack_loader)
 
 
 if __name__ == "__main__":

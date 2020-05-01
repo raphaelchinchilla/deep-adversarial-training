@@ -946,3 +946,10 @@
 [2020/04/29 15:41:24] - Test  	 loss: 0.3079 	 acc: 0.9435
 [2020/04/29 15:44:08] - 4 	 163 	 	 0.0400 	 nan 	 0.2705 	 nan 	 0.2559
 [2020/04/29 15:44:08] - Test  	 loss: nan 	 acc: 0.0980
+[2020/05/01 00:59:19] - Namespace(attack='pgd', attack_network=True, batch_size=50, black_box=False, dataset='mnist', directory='/home/metehan/deep_adv/MNIST/', epochs=10, epsilon=0.3, initialize_model=False, lamb=0.001, learning_rate=0.2, log_interval=600, loss_scale='1.0', lr_max=0.05, lr_min=0.0, master_weights=False, model='CNN', momentum=0.5, mu=0.1, no_cuda=False, norm='inf', num_iterations=100, num_restarts=1, opt_level='O0', rand=False, save_model=True, seed=1, step_size=0.01, test_batch_size=10000, tr_alpha=0.4, tr_attack='dn', tr_epsilon=0.3, tr_norm='inf', tr_num_iterations=40, tr_num_restarts=1, tr_rand=True, tr_step_size=0.01, train=True, weight_decay=0.0005)
+[2020/05/01 00:59:19] - 
+
+[2020/05/01 00:59:26] - Distorting neurons
+[2020/05/01 00:59:26] - Epoch 	 Seconds 	 LR 	 	 Clean Loss 	 Clean Acc 	 Dist Loss 	 Dist Acc
+[2020/05/01 01:02:12] - 1 	 166 	 	 0.0100 	 1.7218 	 0.4078 	 6.7229 	 0.2283
+[2020/05/01 01:02:12] - Test  	 loss: 0.1435 	 acc: 0.9650

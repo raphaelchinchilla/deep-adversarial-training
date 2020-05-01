@@ -34,7 +34,6 @@ from deep_adv.train_test_functions import (
     test_adversarial,
 )
 from deep_adv.MNIST.parameters import get_arguments
-from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
 from deep_adv.MNIST.read_datasets import MNIST
 
 logger = logging.getLogger(__name__)
