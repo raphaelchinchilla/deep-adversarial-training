@@ -11,7 +11,7 @@ def get_arguments():
     parser = argparse.ArgumentParser(description='PyTorch MNIST')
 
     # Directory
-    parser.add_argument('--directory', type=str, default='/home/metehan/deep_adv/MNIST/',
+    parser.add_argument('--directory', type=str, default='/home/raphael/MyModules/deep_adv/MNIST/',
                         metavar='', help='Directory for checkpoint and stuff')
 
     # Dataset

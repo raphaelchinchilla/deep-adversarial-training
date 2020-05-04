@@ -25,7 +25,7 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import MultiStepLR
 
 from deep_adv.MNIST.models.layers import LeNet
-from deep_adv.MNIST.models.lowapi import CNN1, CNN2
+from deep_adv.MNIST.models.lowapi import CNN1, CNN2, CNN3
 from deep_adv.train_test_functions import (
     train,
     train_adversarial,
@@ -78,6 +78,8 @@ def main():
         model = CNN1().to(device)
     elif args.tr_attack == "dba":
         model = CNN2().to(device)
+    elif args.tr_attack == "dnwi":
+        model = CNN3().to(device)
     else:
         raise NotImplementedError
 
@@ -120,7 +122,7 @@ def main():
                     os.makedirs(args.directory + "checkpoints/")
                 torch.save(model.state_dict(),
                            path.join(args.directory + "checkpoints/", args.model + ".pt"))
-        elif args.tr_attack == "dn" or args.tr_attack == "dba":
+        elif args.tr_attack == "dn" or args.tr_attack == "dba" or args.tr_attack =="dnwi":
             logger.info("Distorting neurons")
             logger.info('Epoch \t Seconds \t LR \t \t Clean Loss \t Clean Acc \t Dist Loss \t Dist Acc')
             data_params = {"x_min": x_min, "x_max": x_max}
@@ -143,9 +145,10 @@ def main():
                                            mu=mu,
                                            data_params=data_params,
                                            attack_params=attack_params)
+                # breakpoint()
                 clean_loss, clean_acc, dist_loss, dist_acc = train_deep_adversarial(
                     **deep_adv_train_args)
-                model.d = [0, 0, 0]
+                model.d = [0, 0, 0, 0]
                 test_loss, test_acc = test(model, test_loader)
                 end_time = time.time()
                 lr = scheduler.get_lr()[0]
@@ -180,7 +183,7 @@ def main():
             model.load_state_dict(
                 torch.load(path.join(args.directory + 'checkpoints/', args.model + ".pt",))
                 )
-        elif args.tr_attack == "dn" or args.tr_attack == "dba":
+        elif args.tr_attack == "dn" or args.tr_attack == "dba" or args.tr_attack =="dnwi":
             checkpoint_name = args.directory + "checkpoints/" + \
                 args.model + "_deep_adv" + "_" + str(lamb) + "_" + str(mu) + ".pt"
             model.load_state_dict(torch.load(checkpoint_name))
