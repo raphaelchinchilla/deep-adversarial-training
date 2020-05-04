@@ -9,3 +9,4 @@
 **/*.ipynb
 **/*.pyc
 **/__pycache__/*
+*.log

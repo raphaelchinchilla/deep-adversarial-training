@@ -17,8 +17,10 @@ from apex import amp
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
-from deep_adv.adversary.norm_ball_attacks import RandomFastGradientSignMethod as RFGSM
+
+from attacks import PGD
+from attacks.amp import RFGSM
+
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
 from deep_adv.adversary.layer_attacks import DistortNeuronsStepeestDescent as DNSD
 from deep_adv.adversary.layer_attacks import distort_before_activation as DBA
@@ -125,7 +127,6 @@ def train_fgsm_adversarial(model, train_loader, optimizer, scheduler, data_param
                          x=data,
                          y_true=target,
                          optimizer=optimizer,
-                         verbose=False,
                          data_params=data_params,
                          attack_params=attack_params)
         perturbs = RFGSM(**fgsm_args)
@@ -166,7 +167,6 @@ def train_adversarial(model, train_loader, optimizer, scheduler, data_params, at
         pgd_args = dict(net=model,
                         x=data,
                         y_true=target,
-                        optimizer=optimizer,
                         verbose=False,
                         data_params=data_params,
                         attack_params=attack_params)
