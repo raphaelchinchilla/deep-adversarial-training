@@ -15,7 +15,6 @@ import torch.optim as optim
 from torch.nn.functional import relu
 from torch.nn.functional import softmax
 
-from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
 from deep_adv.MNIST.parameters import get_arguments
 from deep_adv.MNIST.read_datasets import MNIST
 from deep_adv.MNIST.models.lowapi import CNN

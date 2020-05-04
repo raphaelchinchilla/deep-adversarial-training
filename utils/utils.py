@@ -19,7 +19,7 @@ import os
 from tqdm import tqdm
 
 # from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
-from attacks import PGD
+from deepillusion.torchattacks import PGD
 
 
 def save_perturbed_images(args, model, device, data_loader, data_params, attack_params):

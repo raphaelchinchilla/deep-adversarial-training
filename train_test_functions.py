@@ -18,8 +18,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from attacks import PGD
-from attacks.amp import RFGSM
+from deepillusion.torchattacks import PGD, RFGSM
 
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
 from deep_adv.adversary.layer_attacks import DistortNeuronsStepeestDescent as DNSD
