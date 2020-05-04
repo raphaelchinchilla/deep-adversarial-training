@@ -25,7 +25,8 @@ from torchvision import datasets, transforms
 
 from deep_adv.utils import plot_settings
 # from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
-from attacks import PGD
+from deepillusion.torchattacks import PGD
+from deepillusion.torchattacks.analysis import get_perturbation_stats
 
 
 mpl.rc("text", usetex=True)
@@ -70,7 +71,7 @@ def attack_statistics(args, model, loader, data_params, attack_params):
         data, target = data.to(device), target.to(device)
         perturbs = PGD(model, data, target,
                        data_params=data_params, attack_params=attack_params)
-        e = perturbation_properties(np.array((data + perturbs).cpu()), budget, np.array(data.cpu()))
+        e = get_perturbation_stats(data, data + perturbs, budget)
 
         output = model(data + perturbs)
         test_loss += cross_ent(output, target).item() * target.size(0)
@@ -84,30 +85,6 @@ def attack_statistics(args, model, loader, data_params, attack_params):
     # plot_perturbations(
     #     args, clean_images, labels, attacked_images, preds, budget, title=None
     #     )
-
-
-def perturbation_properties(adversarial_images, epsilon, test_images):
-
-    e = e = adversarial_images.reshape([adversarial_images.shape[0], -1]) - \
-        test_images.reshape([test_images.shape[0], -1])
-
-    print(f"Attack budget: {epsilon}")
-
-    print(f"Percent of images perturbation is added: {100. * np.count_nonzero(np.max(np.abs(e),axis = 1))/e.shape[0]} %")
-    print(f"L_inf distance: {np.round(np.abs(e).max()*255)}")
-    print(f"Avg magnitude: {np.abs(e).mean()*255:.2f}")
-
-    tol = 1e-5
-
-    num_eps = (
-        ((np.abs(e) < epsilon + tol) & (np.abs(e) > epsilon - tol)).sum(axis=1).mean()
-        )
-
-    print(
-        f"Percent of pixels with mag=eps: {100*num_eps/(adversarial_images.shape[1]*adversarial_images.shape[2]*adversarial_images.shape[3])}"
-        )
-
-    return e
 
 
 def plot_perturbations(args, x, y, x_adv, y_hat, budget, title=None):

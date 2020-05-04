@@ -7,7 +7,7 @@ from tqdm import tqdm
 import os
 from os import path
 
-from adv_ml.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deepillusion.torchattacks import PGD
 from adv_ml.train_test_functions import (
     train,
     train_adversarial,

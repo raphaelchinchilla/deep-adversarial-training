@@ -27,7 +27,7 @@ from adv_ml.train_test_functions import train, train_fgsm_adversarial, train_adv
 from adv_ml.CIFAR10.parameters import get_arguments
 from adv_ml.CIFAR10.read_datasets import cifar10, cifar10_black_box
 
-from adv_ml.adversary.soft_attacks import iterative_soft_attack
+from deepillusion.torchattacks import iterative_soft_attack
 
 
 def main():

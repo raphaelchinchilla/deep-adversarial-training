@@ -17,7 +17,8 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from deep_adv.adversary.norm_ball_attacks import ProjectedGradientDescent as PGD
+from deepillusion.torchattacks import PGD
+
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
 from deep_adv.adversary.layer_attacks import SingleStep
 
