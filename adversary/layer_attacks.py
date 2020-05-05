@@ -19,6 +19,7 @@ from torch import nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+
 def DistortNeuronsWithInput(model, x, y_true, lamb, mu, optimizer=None):
     model.eval()
     num_iters = 50
@@ -27,8 +28,6 @@ def DistortNeuronsWithInput(model, x, y_true, lamb, mu, optimizer=None):
     model.d[1] = 1*torch.randn(model.n[1].size()).to(device)
     model.d[2] = 1*torch.randn(model.n[2].size()).to(device)
     model.d[3] = 1*torch.randn(model.n[3].size()).to(device)
-
-
 
     _ = model(x)
 
@@ -45,28 +44,28 @@ def DistortNeuronsWithInput(model, x, y_true, lamb, mu, optimizer=None):
         n_new[i].requires_grad_(True)
 
     # breakpoint()
-    optimizer_dn = optim.Adam(n_new, lr=mu)
-    # optimizer_dn = optim.SGD(n_new, lr=mu,momentum=0.1)
+    # optimizer_dn = optim.Adam(n_new, lr=mu)
+    optimizer_dn = optim.SGD(n_new, lr=mu, momentum=0.1)
     with torch.no_grad():
-        x=layers[0](x)
+        x = layers[0](x)
 
     def rho(z):
-        return torch.sum(z**2,1)
+        return torch.sum(z**2, 1)
         # return torch.norm(z,p=1,dim=1)
-
 
     for _ in range(num_iters):
         # loss layer is added from last layer to input layer
         loss = -criterion(layers[-1](n_new[3]), y_true)
         loss += lamb * rho(n_new[3] - F.leaky_relu(layers[3](n_new[2])))
-        loss += lamb * rho(n_new[2] - F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1))
-        loss += lamb * rho((n_new[1] - F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2))).view(x.size(0), -1))
+        loss += lamb * rho(n_new[2] - F.max_pool2d(F.leaky_relu(layers[2]
+                                                                (n_new[1])), (2, 2)).view(x.size(0), -1))
+        loss += lamb * \
+            rho((n_new[1] - F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2))).view(x.size(0), -1))
         loss += lamb * rho((n_new[0] - x).view(x.size(0), -1))
-
 
         if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n_new[0])) or torch.any(torch.isnan(n_new[1])) or torch.any(torch.isnan(n_new[2])):
             breakpoint()
-        if torch.any(loss.abs()>1e5) or torch.any(n_new[0].abs()>1e3) or torch.any(n_new[1].abs()>1e3) or torch.any(n_new[2].abs()>1e3) or torch.any(n_new[3].abs()>1e3):
+        if torch.any(loss.abs() > 1e5) or torch.any(n_new[0].abs() > 1e3) or torch.any(n_new[1].abs() > 1e3) or torch.any(n_new[2].abs() > 1e3) or torch.any(n_new[3].abs() > 1e3):
             breakpoint()
         if optimizer is not None:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -75,22 +74,19 @@ def DistortNeuronsWithInput(model, x, y_true, lamb, mu, optimizer=None):
         else:
             loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
 
-
         optimizer_dn.step()
         optimizer_dn.zero_grad()
-
 
     with torch.no_grad():
         model.d[0] = n_new[0] - x
         model.d[1] = n_new[1] - F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2))
-        model.d[2] = n_new[2] - F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1)
+        model.d[2] = n_new[2] - \
+            F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1)
         model.d[3] = n_new[3] - F.leaky_relu(layers[3](n_new[2]))
-
-
-
 
     for p in model.parameters():
         p.requires_grad = True
+
 
 def DistortNeuronsStepeestDescent(model, x, y_true, lamb, mu, optimizer=None):
 
@@ -121,7 +117,6 @@ def DistortNeuronsStepeestDescent(model, x, y_true, lamb, mu, optimizer=None):
         loss -= lamb * \
             torch.norm(model.NN[2] - F.leaky_relu(layers[2]
                                                   (model.NN[1])), p=1, dim=1)
-
 
         if optimizer is not None:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -179,7 +174,7 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
     optimizer_dn = optim.Adam(n_new, lr=mu)
     # optimizer_dn = optim.SGD(n_new, lr=mu,momentum=0.1)
     with torch.no_grad():
-        x_new=F.max_pool2d(F.leaky_relu(layers[1](layers[0](x))), (2, 2))
+        x_new = F.max_pool2d(F.leaky_relu(layers[1](layers[0](x))), (2, 2))
 
     for _ in range(num_iters):
         loss = -criterion(layers[-1](n_new[-1]), y_true)
@@ -196,10 +191,9 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
         #     layers[2](n_new[0])), (2, 2)).view(x.size(0), -1)).view(x.size(0), -1)).pow(2).sum(1)
         # loss += lamb *(n_new[2] - F.leaky_relu(layers[3](n_new[1]))).pow(2).sum(1)
 
-
         if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n_new[0])) or torch.any(torch.isnan(n_new[1])) or torch.any(torch.isnan(n_new[2])):
             breakpoint()
-        if torch.any(loss.abs()>1e2) or torch.any(n_new[0].abs()>1e2) or torch.any(n_new[1].abs()>1e2) or torch.any(n_new[2].abs()>1e2):
+        if torch.any(loss.abs() > 1e2) or torch.any(n_new[0].abs() > 1e2) or torch.any(n_new[1].abs() > 1e2) or torch.any(n_new[2].abs() > 1e2):
             breakpoint()
         if optimizer is not None:
             with amp.scale_loss(loss, optimizer) as scaled_loss:
@@ -207,7 +201,6 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
                     y_true, dtype=torch.float))
         else:
             loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-
 
         # with torch.no_grad():
         #     # print(model.n[0].grad[0, 0, 0, 0])
@@ -233,11 +226,8 @@ def DistortNeurons(model, x, y_true, lamb, mu, optimizer=None):
                          (2, 2)).view(x.size(0), -1)
         model.d[2] = n_new[2] - F.leaky_relu(layers[3](n_new[1]))
 
-
-
     for p in model.parameters():
         p.requires_grad = True
-
 
 
 def distort_before_activation_old(model, x, y_true, lamb, mu, optimizer=None):
@@ -331,10 +321,10 @@ def distort_before_activation(model, x, y_true, lamb, mu, optimizer=None):
         loss = -criterion(output, y_true)
         loss += lamb * torch.norm(model.d[0].view(x.size(0), -1), p=1, dim=1)
         loss += lamb * torch.norm((m_new[1] -
-                                    layers[1](F.max_pool2d(F.leaky_relu(m_new[0]), (2, 2)))).view(x.size(0), -1), p=1, dim=1)
+                                   layers[1](F.max_pool2d(F.leaky_relu(m_new[0]), (2, 2)))).view(x.size(0), -1), p=1, dim=1)
         loss += lamb * \
             torch.norm(m_new[2] - layers[2]
-                        (F.max_pool2d(F.leaky_relu(m_new[1]), (2, 2)).view(m_new[1].size(0), -1)), p=1, dim=1)
+                       (F.max_pool2d(F.leaky_relu(m_new[1]), (2, 2)).view(m_new[1].size(0), -1)), p=1, dim=1)
 
         if optimizer is not None:
             with amp.scale_loss(loss, optimizer) as scaled_loss:

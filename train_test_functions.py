@@ -18,13 +18,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from deepillusion.torchattacks import PGD, RFGSM
+from deepillusion.torchattacks import PGD, RFGSM, FGSM
 
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
 from deep_adv.adversary.layer_attacks import DistortNeuronsStepeestDescent as DNSD
 from deep_adv.adversary.layer_attacks import distort_before_activation as DBA
 from deep_adv.adversary.layer_attacks import DistortNeuronsWithInput as DNWI
-
 
 
 def train(model, train_loader, optimizer, scheduler):
@@ -73,7 +72,7 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
         data, target = data.to(
             device), target.to(device)
 
-        model.d = [0, 0, 0 , 0]
+        model.d = [0, 0, 0, 0]
         out_clean = model(data)
 
         dn_args = dict(model=model,
@@ -125,7 +124,6 @@ def train_fgsm_adversarial(model, train_loader, optimizer, scheduler, data_param
         fgsm_args = dict(net=model,
                          x=data,
                          y_true=target,
-                         optimizer=optimizer,
                          data_params=data_params,
                          attack_params=attack_params)
         perturbs = RFGSM(**fgsm_args)
@@ -217,9 +215,6 @@ def test_adversarial(model, test_loader, data_params, attack_params):
 
     device = model.parameters().__next__().device
 
-    for key in attack_params:
-        print(key + ': ' + str(attack_params[key]))
-
     model.eval()
 
     test_loss = 0
@@ -235,6 +230,41 @@ def test_adversarial(model, test_loader, data_params, attack_params):
                         data_params=data_params,
                         attack_params=attack_params)
         perturbs = PGD(**pgd_args)
+        data += perturbs
+        # breakpoint()
+
+        output = model(data)
+
+        cross_ent = nn.CrossEntropyLoss()
+        test_loss += cross_ent(output, target).item() * data.size(0)
+
+        pred = output.argmax(dim=1, keepdim=True)
+        test_correct += pred.eq(target.view_as(pred)).sum().item()
+
+    test_size = len(test_loader.dataset)
+
+    return test_loss/test_size, test_correct/test_size
+
+
+def test_fgsm(model, test_loader, data_params, attack_params):
+
+    device = model.parameters().__next__().device
+
+    model.eval()
+
+    test_loss = 0
+    test_correct = 0
+    for data, target in tqdm(test_loader):
+
+        data, target = data.to(device), target.to(device)
+
+        # Attacks
+        fgsm_args = dict(net=model,
+                         x=data,
+                         y_true=target,
+                         data_params=data_params,
+                         attack_params=attack_params)
+        perturbs = FGSM(**fgsm_args)
         data += perturbs
         # breakpoint()
 
