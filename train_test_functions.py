@@ -21,9 +21,10 @@ import torch.nn.functional as F
 from deepillusion.torchattacks import PGD, RFGSM
 
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
-from deep_adv.adversary.layer_attacks import DistortNeuronsStepeestDescent as DNSD
-from deep_adv.adversary.layer_attacks import distort_before_activation as DBA
 from deep_adv.adversary.layer_attacks import DistortNeuronsWithInput as DNWI
+from deep_adv.adversary.layer_attacks import DistortNeuronsBounded as DNB
+
+
 
 
 
@@ -83,9 +84,8 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
                        mu=mu)
 
         # DN(**dn_args)
-        # DNSD(**dn_args)
-        # DBA(**dn_args)
-        DNWI(**dn_args)
+        # DNWI(**dn_args)
+        DNB(**dn_args)
 
         optimizer.zero_grad()
         output = model(data)
