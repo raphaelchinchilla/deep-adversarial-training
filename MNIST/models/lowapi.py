@@ -16,7 +16,8 @@ class CNN1(nn.Module):
     def __init__(self):
         super(CNN1, self).__init__()
 
-        self.norm = Normalize(mean=[0.1307], std=[0.3081])
+        # self.norm = Normalize(mean=[0.1307], std=[0.3081])
+        self.norm = Normalize(mean=[0.], std=[1.])
         self.conv1 = nn.Conv2d(1, 32, kernel_size=5,
                                stride=1, padding=2, bias=True)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=5,
@@ -48,7 +49,8 @@ class CNN2(nn.Module):
     def __init__(self):
         super(CNN2, self).__init__()
 
-        self.norm = Normalize(mean=[0.1307], std=[0.3081])
+        self.norm = Normalize(mean=[0.], std=[1.])
+        # self.norm = Normalize(mean=[0.1307], std=[0.3081])
         self.conv1 = nn.Conv2d(1, 32, kernel_size=5,
                                stride=1, padding=2, bias=True)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=5,
@@ -80,7 +82,8 @@ class CNN3(nn.Module):
     def __init__(self):
         super(CNN3, self).__init__()
 
-        self.norm = Normalize(mean=[0.1307], std=[0.3081])
+        self.norm = Normalize(mean=[0.], std=[1.])
+        # self.norm = Normalize(mean=[0.1307], std=[0.3081])
         self.conv1 = nn.Conv2d(1, 32, kernel_size=5,
                                stride=1, padding=2, bias=True)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=5,

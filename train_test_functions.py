@@ -23,6 +23,10 @@ from deepillusion.torchattacks import PGD, RFGSM
 from deep_adv.adversary.layer_attacks import DistortNeurons as DN
 from deep_adv.adversary.layer_attacks import DistortNeuronsWithInput as DNWI
 from deep_adv.adversary.layer_attacks import DistortNeuronsBounded as DNB
+from deep_adv.adversary.layer_attacks import DistortNeuronsManual as DNM
+from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradient as DNCG
+
+
 
 
 
@@ -85,7 +89,9 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
 
         # DN(**dn_args)
         # DNWI(**dn_args)
-        DNB(**dn_args)
+        # DNB(**dn_args)
+        # DNM(**dn_args)
+        DNCG(**dn_args)
 
         optimizer.zero_grad()
         output = model(data)
