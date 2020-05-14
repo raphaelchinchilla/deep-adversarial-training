@@ -26,8 +26,8 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     eps_input = 0.3 # value to clamp input disturbance
     eps_layers = 2 # value to clamp layer disturbance
     lamb_layers = 20 # how many times regularization in inside layers
-    eps_init_layers= 2# math.sqrt(1/(lamb*lamb_layers)) # "variance" for the initialization of disturbances
-    lamb_reg = 0.01 # regularization of the intermediate layers
+    eps_init_layers= 1# math.sqrt(1/(lamb*lamb_layers)) # "variance" for the initialization of disturbances
+    lamb_reg = 0.1 # regularization of the intermediate layers
     debug = False # set to true to activate break points and prints
     solver = 'CG'
     device = model.parameters().__next__().device
@@ -117,10 +117,10 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         iter+=1
 
         # Calculating the loss
-        loss =  rho(n[0],x)# - lamb_reg*reg(n[0])
-        loss += lamb_layers*rho(n[1],aux[0])# - lamb_reg*reg(n[1])
-        loss += lamb_layers*rho(n[2],aux[1])# - lamb_reg*reg(n[2])
-        loss += lamb_layers*rho(n[3],aux[2])# - lamb_reg*reg(n[3])
+        loss =  rho(n[0],x) - lamb_reg*reg(n[0])
+        loss += lamb_layers*rho(n[1],aux[0]) - lamb_reg*reg(n[1])
+        loss += lamb_layers*rho(n[2],aux[1]) - lamb_reg*reg(n[2])
+        loss += lamb_layers*rho(n[3],aux[2]) - lamb_reg*reg(n[3])
         loss += -criterion(layers[-1](n[3]), y_true)/lamb
 
         loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
@@ -138,8 +138,8 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
                 if iter>1:
                     beta=torch.zeros((x.size(0),1),device=device)
                     for i in range(len(n)):
-                        # beta+=batch_dot_prod(n[i].grad,n[i].grad)
-                        beta+=batch_dot_prod(n[i].grad,n[i].grad-0.1*grad_prev[i])
+                        beta+=batch_dot_prod(n[i].grad,n[i].grad)
+                        # beta+=batch_dot_prod(n[i].grad,n[i].grad-1*grad_prev[i])
                     beta/=norm_grad
                     beta=torch.relu(beta)
                 if debug:
