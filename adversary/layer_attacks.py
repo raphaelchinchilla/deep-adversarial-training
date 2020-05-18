@@ -27,9 +27,9 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     eps_layers = 2 # value to clamp layer disturbance
     lamb_layers = 20 # how many times regularization in inside layers
     eps_init_layers= 0.5# math.sqrt(1/(lamb*lamb_layers)) # "variance" for the initialization of disturbances
-    lamb_reg = 0.01 # regularization of the intermediate layers
-    debug = False # set to true to activate break points and prints
-    solver = 'CG'
+    #lamb_reg = 0.01 # regularization of the intermediate layers
+    debug = True # set to true to activate break points and prints
+    solver = 'CG'#'CG' or 'GD'
     device = model.parameters().__next__().device
     criterion = nn.CrossEntropyLoss(reduction="none")
 
@@ -53,11 +53,11 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     grad_prev = [None] * (len(n))
     direct = [None] * (len(n))
     for i in range(len(n)):
-        grad_prev[i] = torch.empty(model.n[i].size()).to(device)
         direct[i] = torch.zeros(model.n[i].size()).to(device)
+    alpha=torch.ones((x.size(0),1),device=device)
     beta=torch.zeros((x.size(0),1),device=device)
     norm_grad=torch.zeros((x.size(0),1),device=device)
-    norm_grad_prev=torch.zeros((x.size(0),1),device=device)
+    loss=torch.zeros((x.size(0)),device=device)
 
 
     with torch.no_grad():
@@ -115,7 +115,7 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     iter=0
     while iter<= num_iters and solver!='solved' and solver!='failed':
         iter+=1
-
+        loss_prev=loss.clone()
         # Calculating the loss
         loss =  rho(n[0],x) #- lamb_reg*reg(n[0])
         loss += lamb_layers*rho(n[1],aux[0]) #- lamb_reg*reg(n[1])
@@ -127,50 +127,41 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
 
 
         with torch.no_grad():
+            norm_grad_prev=norm_grad.clone()
+            norm_grad=torch.zeros((x.size(0),1),device=device)
+            for i in range(len(n)):
+                norm_grad+=batch_dot_prod(n[i].grad,n[i].grad)
+            if iter == 1:
+                norm_grad_init=norm_grad.clone()
+                loss_init=loss.detach().clone()
+            if iter>1:
+                loss_diff=loss_prev-loss
+                # Calculating beta
+                beta=norm_grad/norm_grad_prev
+                beta[loss_diff.view(x.size(0),-1)<0]=0 # restart direction if not search direction
+                # Ajusting step size alpha depending on whether cost was increased or decreased
+                alpha[loss_diff.view(x.size(0),-1)<0]*=0.5
+                alpha[loss_diff.view(x.size(0),-1)>0]*=1.001
             if debug:
-                print("Iter:", iter, ", Solver: ", solver,  ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(layers[-1](n[3]), y_true).max().data.cpu().numpy())
-                print(" Grad n[0]: ", n[0].grad.abs().mean().data.cpu().numpy()," Grad n[1]: ", n[1].grad.abs().mean().data.cpu().numpy()," Grad n[2]: ", n[2].grad.abs().mean().data.cpu().numpy()," Grad n[3]: ", n[3].grad.abs().mean().data.cpu().numpy())
-            if solver=='CG':
-                if iter == 3: # Not really using the initial oto allow some noise to be cleared out
-                    norm_grad_init=torch.zeros((x.size(0),1),device=device)
-                    for i in range(len(n)):
-                        norm_grad_init+=batch_dot_prod(n[i].grad,n[i].grad)
-                if iter>1:
-                    beta=torch.zeros((x.size(0),1),device=device)
-                    for i in range(len(n)):
-                        beta+=batch_dot_prod(n[i].grad,n[i].grad)
-                        # beta+=batch_dot_prod(n[i].grad,n[i].grad-1*grad_prev[i])
-                    beta/=norm_grad
-                    beta=torch.relu(beta)
-                if debug:
-                    print("Beta:", beta.abs().max().data.cpu().numpy(),"norm_grad:", norm_grad.max().data.cpu().numpy())
-                norm_grad_prev=norm_grad.clone()
-                norm_grad=torch.zeros((x.size(0),1),device=device)
-                for i in range(len(n)):
-                    direct[i].view(x.size(0),-1).mul_(beta) # Multiply each line of bactch by the value of beta that is equivalent. Equivalent to direct[i]*=beta.view([-1]+[1]*(direct[i].ndim-1)).expand_as(direct[i])
-                    direct[i]+=-n[i].grad
-                    n[i]+=mu/iter*direct[i]
-                    norm_grad+=batch_dot_prod(n[i].grad,n[i].grad)
-                    grad_prev[i]=n[i].grad.clone()
-                    n[i].grad.zero_()
-                if iter>=10:
-                    if norm_grad_prev.max()<norm_grad.max():
-                        solver='failed'
-                    if (norm_grad/norm_grad_init).max()<1e-3:
-                        solver='solved'
-            elif solver=='GD':
-                # norm_grad=float("-inf")
-                # if iter==1:
-                    # for i in range(len(n)):
-                        # norm_grad_init_inv[i] = 1/torch.norm(n[i].grad)
-                for i in range(len(n)):
-                    # norm_grad=max(norm_grad,torch.norm(norm_grad_init_inv[i]*n[i].grad))
-                    # direct[i].mul_(0.1).add_(-mu/iter*n[i].grad)
-                    # n[i].add_(direct[i])
-                    n[i]+=-mu/iter*n[i].grad
-                    n[i].grad.zero_()
+                print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(layers[-1](n[3]), y_true).max().data.cpu().numpy())
+                print("      Grad n[0]: ", n[0].grad.abs().mean().data.cpu().numpy()," Grad n[1]: ", n[1].grad.abs().mean().data.cpu().numpy()," Grad n[2]: ", n[2].grad.abs().mean().data.cpu().numpy()," Grad n[3]: ", n[3].grad.abs().mean().data.cpu().numpy())
+                print("      Beta:", beta.abs().max().data.cpu().numpy(),"norm_grad:", norm_grad.max().data.cpu().numpy(), "alpha: ", alpha.min().data.cpu().numpy())
+            for i in range(len(n)):
+                direct[i].view(x.size(0),-1).mul_(beta) # Multiply the previous step direction of each batch by the value of beta that is equivalent. Equivalent to direct[i]*=beta.view([-1]+[1]*(direct[i].ndim-1)).expand_as(direct[i])
+                direct[i]+=-n[i].grad # Update the search direction with the new step to go
+                n[i]+=mu*direct[i].view(x.size(0),-1).mul(alpha).view_as(n[i]) # Update the new value of the neurons with the step direction alpha.
+                # n[i]+=mu/iter*direct[i]
+                n[i].grad.zero_()
+            if iter>=10:
+                norm_ratio=(norm_grad/norm_grad_init).max()
+                if norm_ratio>=1.5 or (loss_init-loss).max()<0:
+                    solver='failed'
+                if norm_ratio<1e-3:
+                    solver='solved'
 
-        # Simulating the systemq
+
+
+        # Simulating the system
         with torch.no_grad():
             n[0]=x+torch.clamp(n[0] - x,-eps_input,eps_input)
             n[0]=torch.clamp(n[0],0.,1.)
@@ -201,8 +192,8 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
             model.d[3] = n[3] - aux[2]
             if debug:
                 print(" d[0]: ", model.d[0].abs().max().data.cpu().numpy() ," d[1]: ", model.d[1].abs().max().data.cpu().numpy()," d[2]: ", model.d[2].abs().max().data.cpu().numpy()," d[3]: ", model.d[3].abs().max().data.cpu().numpy())
-                # breakpoint()
-                # time.sleep(0.000001)
+                breakpoint()
+                time.sleep(0.000001)
         else:
             model.d[0] = 0
             model.d[1] = 0
@@ -210,8 +201,8 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
             model.d[3] = 0
             if debug:
                 print("NOT SOLVED")
-                # breakpoint()
-                # time.sleep(0.000001)
+                breakpoint()
+                time.sleep(0.000001)
 
     for p in model.parameters():
         p.requires_grad = True
