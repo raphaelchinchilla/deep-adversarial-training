@@ -21,7 +21,7 @@ import torch.optim as optim
 
 
 def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
-    model.eval()
+    # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
     eps_layers = 2 # value to clamp layer disturbance
@@ -29,7 +29,8 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     eps_init_layers= 0.5# math.sqrt(1/(lamb*lamb_layers)) # "variance" for the initialization of disturbances
     #lamb_reg = 0.01 # regularization of the intermediate layers
     debug = True # set to true to activate break points and prints
-    solver = 'CG'#'CG' or 'GD'
+    #Code
+    model.eval()
     device = model.parameters().__next__().device
     criterion = nn.CrossEntropyLoss(reduction="none")
 
@@ -49,8 +50,7 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         aux[i] = torch.empty(model.n[i+1].size()).to(device)
 
 
-    # Initializing several auxilia ry lists as empty
-    grad_prev = [None] * (len(n))
+    # Initializing several auxiliary lists as empty
     direct = [None] * (len(n))
     for i in range(len(n)):
         direct[i] = torch.zeros(model.n[i].size()).to(device)
@@ -58,6 +58,17 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     beta=torch.zeros((x.size(0),1),device=device)
     norm_grad=torch.zeros((x.size(0),1),device=device)
     loss=torch.zeros((x.size(0)),device=device)
+
+
+    # Defining some function
+    # crit=torch.nn.L1Loss(reduction='none')
+    crit=torch.nn.MSELoss(reduction='none')
+    def rho(z,w):
+        return crit(z.view(z.size(0), -1),w.view(w.size(0), -1)).sum(1)
+    def reg(z):
+        return (z.view(z.size(0), -1)**2).sum(1)
+    def batch_dot_prod(z,w):
+        return (z.view(z.size(0), -1)*w.view(w.size(0), -1)).sum(1).view(z.size(0), -1)
 
 
     with torch.no_grad():
@@ -100,18 +111,9 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     n[3].requires_grad_(True)
 
 
-    # crit=torch.nn.L1Loss(reduction='none')
-    crit=torch.nn.MSELoss(reduction='none')
-    def rho(z,w):
-        return crit(z.view(x.size(0), -1),w.view(x.size(0), -1)).sum(1)
-
-    def reg(z):
-        return (z.view(x.size(0), -1)**2).sum(1)
 
 
-    def batch_dot_prod(z,w):
-        return (z.view(x.size(0), -1)*w.view(x.size(0), -1)).sum(1).view(x.size(0), -1)
-
+    solver = 'running'
     iter=0
     while iter<= num_iters and solver!='solved' and solver!='failed':
         iter+=1
