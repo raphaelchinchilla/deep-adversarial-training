@@ -20,15 +20,17 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 
+
 def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
     eps_layers = 2 # value to clamp layer disturbance
     lamb_layers = 20 # how many times regularization in inside layers
-    eps_init_layers= 0.5# math.sqrt(1/(lamb*lamb_layers)) # "variance" for the initialization of disturbances
+    eps_init_layers= 0.5# math.sqrt(1/(lamb*lamb_layers)) # "std" for the initialization of disturbances
+    tol_grad=1e-3 # value gradient problem considered solved
     #lamb_reg = 0.01 # regularization of the intermediate layers
-    debug = True # set to true to activate break points and prints
+    debug = False # set to true to activate break points and prints
     #Code
     model.eval()
     device = model.parameters().__next__().device
@@ -64,11 +66,11 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     # crit=torch.nn.L1Loss(reduction='none')
     crit=torch.nn.MSELoss(reduction='none')
     def rho(z,w):
-        return crit(z.view(z.size(0), -1),w.view(w.size(0), -1)).sum(1)
+        return crit(z.view(x.size(0), -1),w.view(x.size(0), -1)).sum(1)
     def reg(z):
-        return (z.view(z.size(0), -1)**2).sum(1)
+        return (z.view(x.size(0), -1)**2).sum(1)
     def batch_dot_prod(z,w):
-        return (z.view(z.size(0), -1)*w.view(w.size(0), -1)).sum(1).view(z.size(0), -1)
+        return (z.view(x.size(0), -1)*w.view(x.size(0), -1)).sum(1).view(x.size(0), -1)
 
 
     with torch.no_grad():
@@ -115,7 +117,7 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
 
     solver = 'running'
     iter=0
-    while iter<= num_iters and solver!='solved' and solver!='failed':
+    while iter<= num_iters and solver=='running':
         iter+=1
         loss_prev=loss.clone()
         # Calculating the loss
@@ -140,10 +142,11 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
                 loss_diff=loss_prev-loss
                 # Calculating beta
                 beta=norm_grad/norm_grad_prev
-                beta[loss_diff.view(x.size(0),-1)<0]=0 # restart direction if not search direction
+                beta[loss_diff<0]=0 # restart direction if not search direction
                 # Ajusting step size alpha depending on whether cost was increased or decreased
-                alpha[loss_diff.view(x.size(0),-1)<0]*=0.5
-                alpha[loss_diff.view(x.size(0),-1)>0]*=1.001
+                # alpha[loss_diff<0]*=0.5 # decrease by half if cost has increased
+                # alpha[(loss_init-loss)<0]*=0.2 # decrease by another five (total of ten) if cost is worst than original cost
+                # alpha[loss_diff>0]*=1.05
             if debug:
                 print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(layers[-1](n[3]), y_true).max().data.cpu().numpy())
                 print("      Grad n[0]: ", n[0].grad.abs().mean().data.cpu().numpy()," Grad n[1]: ", n[1].grad.abs().mean().data.cpu().numpy()," Grad n[2]: ", n[2].grad.abs().mean().data.cpu().numpy()," Grad n[3]: ", n[3].grad.abs().mean().data.cpu().numpy())
@@ -151,15 +154,20 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
             for i in range(len(n)):
                 direct[i].view(x.size(0),-1).mul_(beta) # Multiply the previous step direction of each batch by the value of beta that is equivalent. Equivalent to direct[i]*=beta.view([-1]+[1]*(direct[i].ndim-1)).expand_as(direct[i])
                 direct[i]+=-n[i].grad # Update the search direction with the new step to go
-                n[i]+=mu*direct[i].view(x.size(0),-1).mul(alpha).view_as(n[i]) # Update the new value of the neurons with the step direction alpha.
-                # n[i]+=mu/iter*direct[i]
+                # n[i]+=mu*direct[i].view(x.size(0),-1).mul(alpha).view_as(n[i]) # Update the new value of the neurons with the step direction alpha.
+                n[i]+=mu/iter*direct[i]
                 n[i].grad.zero_()
             if iter>=10:
-                norm_ratio=(norm_grad/norm_grad_init).max()
-                if norm_ratio>=1.5 or (loss_init-loss).max()<0:
-                    solver='failed'
-                if norm_ratio<1e-3:
+                norm_ratio=norm_grad/norm_grad_init
+                if norm_ratio.max()<tol_grad:
                     solver='solved'
+                elif iter>=20 and (norm_ratio.min()>=1 or (loss_init-loss).max()<0):
+                    solver='failed'
+                elif iter>=50 and norm_ratio.squeeze().median()<tol_grad:
+                    solver='partially solved'
+                # elif norm_grad_prev.max()<norm_grad.max():
+                    # solver='failed'
+
 
 
 
@@ -187,24 +195,221 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         # breakpoint()
 
     with torch.no_grad():
-        if solver=='solved':
-            model.d[0] = n[0] - x
-            model.d[1] = n[1] - aux[0]
-            model.d[2] = n[2] - aux[1]
-            model.d[3] = n[3] - aux[2]
-            if debug:
-                print(" d[0]: ", model.d[0].abs().max().data.cpu().numpy() ," d[1]: ", model.d[1].abs().max().data.cpu().numpy()," d[2]: ", model.d[2].abs().max().data.cpu().numpy()," d[3]: ", model.d[3].abs().max().data.cpu().numpy())
-                breakpoint()
-                time.sleep(0.000001)
-        else:
-            model.d[0] = 0
-            model.d[1] = 0
-            model.d[2] = 0
-            model.d[3] = 0
-            if debug:
-                print("NOT SOLVED")
-                breakpoint()
-                time.sleep(0.000001)
+        d = [None] * (len(n))
+        for i in range(len(n)):
+            d[i] = torch.zeros_like(model.n[i])
+
+        # Input disturbance is always considered as solved. Worst case it is just noise
+        d[0] = (n[0] - x)
+        norm_ratio.squeeze_()
+        # For those where it was solved, input the solved solution
+        d[1][norm_ratio<tol_grad] = (n[1] - aux[0])[norm_ratio<tol_grad]
+        d[2][norm_ratio<tol_grad] = (n[2] - aux[1])[norm_ratio<tol_grad]
+        d[3][norm_ratio<tol_grad] = (n[3] - aux[2])[norm_ratio<tol_grad]
+
+        # For those where it was not, input random small disturbance
+        d[1][norm_ratio>=tol_grad] = 0.05*torch.randn_like(d[1][norm_ratio>=tol_grad])
+        d[2][norm_ratio>=tol_grad] = 0.05*torch.randn_like(d[2][norm_ratio>=tol_grad])
+        d[3][norm_ratio>=tol_grad] = 0.05*torch.randn_like(d[3][norm_ratio>=tol_grad])
+
+
+        if debug:
+            print(" d[0]: ", d[0].abs().max().data.cpu().numpy() ," d[1]: ", d[1].abs().max().data.cpu().numpy()," d[2]: ", d[2].abs().max().data.cpu().numpy()," d[3]: ", d[3].abs().max().data.cpu().numpy())
+            breakpoint()
+            time.sleep(0.000001)
+
+        for i in range(len(n)):
+            model.d[i] = d[i].clone()
+
+
+    for p in model.parameters():
+        p.requires_grad = True
+
+
+def DistortNeuronsGaussNewton(model, x, y_true, lamb, mu, optimizer=None):
+    # Parameters
+    num_iters = 200
+    CGnum_iters= 200
+    eps_input = 0.3 # value to clamp input disturbance
+    eps_layers = 50 # value to clamp layer disturbance
+    lamb_layers = 20 # how many times regularization in inside layers
+    eps_init_layers= 10# math.sqrt(1/(lamb*lamb_layers)) # "std" for the initialization of disturbances
+    tol_grad=1e-3 # value gradient problem considered solved
+    #lamb_reg = 0.01 # regularization of the intermediate layers
+    debug = False # set to true to activate break points and prints
+    #Code
+    model.eval()
+    device = model.parameters().__next__().device
+    criterion = nn.CrossEntropyLoss(reduction="none")
+
+    for p in model.parameters():
+        p.requires_grad = False
+
+    layers = list(model.children())
+
+    # Initializing the Nodes
+    n = [None] * (len(model.n)-1)
+    for i in range(len(n)):
+        n[i] = torch.empty(model.n[i].size()).to(device)
+
+    n_prev = [None] * (len(model.n)-1)
+    for i in range(len(n)):
+        n_prev[i] = torch.empty(model.n[i].size()).to(device)
+
+    grad_prev = [None] * (len(model.n)-1)
+    for i in range(len(n)):
+        grad_prev[i] = torch.empty(model.n[i].size()).to(device)
+
+    # Initializing the auxiliary variables
+    aux = [None] * (len(model.n)-2)
+    for i in range(len(aux)):
+        aux[i] = torch.empty(model.n[i+1].size()).to(device)
+
+
+    # Initializing several auxiliary lists as empty
+    direct = [None] * (len(n))
+    for i in range(len(n)):
+        direct[i] = torch.zeros(model.n[i].size()).to(device)
+    beta=torch.zeros((x.size(0),1),device=device)
+    norm_grad=torch.zeros((x.size(0),1),device=device)
+
+
+
+    # Defining some function
+    crit=torch.nn.MSELoss(reduction='none')
+    def rho(z,w):
+        return crit(z.view(x.size(0), -1),w.view(x.size(0), -1)).sum(1)
+    def reg(z):
+        return (z.view(x.size(0), -1)**2).sum(1)
+    def batch_dot_prod(z,w):
+        return (z.view(x.size(0), -1)*w.view(x.size(0), -1)).sum(1).view(x.size(0), -1)
+
+
+    with torch.no_grad():
+        x=layers[0](x)
+
+    # Initializing the value of the nodes
+
+    with torch.no_grad():
+        n[0]=x+eps_input*(2*torch.rand(x.size())-1).to(device)
+        n[0]=torch.clamp(n[0],0.,1.)
+    n[0].requires_grad_(True)
+    aux[0]=F.max_pool2d(F.leaky_relu(layers[1](n[0])), (2, 2))
+    with torch.no_grad():
+        n[1]=aux[0]+eps_init_layers*torch.randn(model.n[1].size()).to(device)
+    n[1].requires_grad_(True)
+    aux[1]=F.max_pool2d(F.leaky_relu(layers[2](n[1])), (2, 2)).view(x.size(0), -1)
+    with torch.no_grad():
+        n[2]=aux[1]+eps_init_layers*torch.randn(model.n[2].size()).to(device)
+    n[2].requires_grad_(True)
+    aux[2]=F.leaky_relu(layers[3](n[2]))
+    with torch.no_grad():
+        n[3]=aux[2]+eps_init_layers*torch.randn(model.n[3].size()).to(device)
+    n[3].requires_grad_(True)
+
+
+    solver = 'running'
+    iter=0
+    while iter<= num_iters and solver=='running':
+        iter+=1
+
+        # Calculating the loss
+        loss =  rho(n[0],x) #- lamb_reg*reg(n[0])
+        loss += lamb_layers*rho(n[1],aux[0]) #- lamb_reg*reg(n[1])
+        loss += lamb_layers*rho(n[2],aux[1]) #- lamb_reg*reg(n[2])
+        loss += lamb_layers*rho(n[3],aux[2]) #- lamb_reg*reg(n[3])
+        loss += -criterion(layers[-1](n[3]), y_true)/lamb
+
+        loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
+
+        with torch.no_grad():
+            norm_grad_prev=norm_grad.clone()
+            norm_grad=torch.zeros((x.size(0),1),device=device)
+            for i in range(len(n)):
+                n_prev[i] = n[i].clone().detach()
+                grad_prev[i] = n[i].grad
+                norm_grad+=batch_dot_prod(n[i].grad,n[i].grad)
+                n[i].grad.zero_()
+            if iter == 1:
+                norm_grad_init=norm_grad.clone()
+                loss_init=loss.detach().clone()
+            # We solve the Gauss-Newton step using a Conjugate Gradient
+            CGsolver='running'
+            CGiter=1
+            while CGiter<= CGnum_iters and CGsolver=='running':
+                CGiter+=1
+                if iter>1:
+                    beta=norm_grad/norm_grad_prev
+                for i in range(len(n)):
+                    direct[i].view(x.size(0),-1).mul_(beta) # Multiply the previous step direction of each batch by the value of beta that is equivalent. Equivalent to direct[i]*=beta.view([-1]+[1]*(direct[i].ndim-1)).expand_as(direct[i])
+                    direct[i]+=-n[i].grad # Update the search direction with the new step to go
+                    n[i]+=direct[i]
+
+        if debug:
+            print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(layers[-1](n[3]), y_true).max().data.cpu().numpy())
+            print("      norm_grad:", norm_grad.max().data.cpu().numpy(), "Grad n[0]: ", n[0].grad.abs().mean().data.cpu().numpy()," Grad n[1]: ", n[1].grad.abs().mean().data.cpu().numpy()," Grad n[2]: ", n[2].grad.abs().mean().data.cpu().numpy()," Grad n[3]: ", n[3].grad.abs().mean().data.cpu().numpy())
+        if iter>=10:
+            norm_ratio=norm_grad/norm_grad_init
+            if norm_ratio.max()<tol_grad:
+                solver='solved'
+            elif iter>=20 and (norm_ratio.min()>=1 or (loss_init-loss).max()<0):
+                solver='failed'
+            elif iter>=50 and norm_ratio.squeeze().median()<tol_grad:
+                solver='partially solved'
+
+
+
+        # Simulating the system
+        with torch.no_grad():
+            n[0]=x+torch.clamp(n[0] - x,-eps_input,eps_input)
+            n[0]=torch.clamp(n[0],0.,1.)
+        n[0].requires_grad_(True)
+        aux[0]=F.max_pool2d(F.leaky_relu(layers[1](n[0])), (2, 2))
+        with torch.no_grad():
+            n[1]=aux[0]+torch.clamp(n[1] - aux[0],-eps_layers,eps_layers)
+        n[1].requires_grad_(True)
+        aux[1]=F.max_pool2d(F.leaky_relu(layers[2](n[1])), (2, 2)).view(x.size(0), -1)
+        with torch.no_grad():
+            n[2]=aux[1]+torch.clamp(n[2] - aux[1],-eps_layers,eps_layers)
+        n[2].requires_grad_(True)
+        aux[2]=F.leaky_relu(layers[3](n[2]))
+        with torch.no_grad():
+            n[3]=aux[2]+torch.clamp(n[3] - aux[2],-eps_layers,eps_layers)
+        n[3].requires_grad_(True)
+
+    if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n[0])) or torch.any(torch.isnan(n[1])) or torch.any(torch.isnan(n[2])):
+        raise ValueError('Diverged')
+    # if torch.any(loss.abs()>1e5) or torch.any(n[0].abs()>1e3) or torch.any(n[1].abs()>1e3) or torch.any(n[2].abs()>1e3) or torch.any(n[3].abs()>1e3):
+        # breakpoint()
+
+    with torch.no_grad():
+        d = [None] * (len(n))
+        for i in range(len(n)):
+            d[i] = torch.zeros_like(model.n[i])
+
+        # Input disturbance is always considered as solved. Worst case it is just noise
+        d[0] = (n[0] - x)
+        # d[0][norm_ratio>=tol_grad] = (n[0] - x)[norm_ratio>=tol_grad]
+        norm_ratio.squeeze_()
+        # For those where it was solved, input the solved solution
+        d[1][norm_ratio<tol_grad] = (n[1] - aux[0])[norm_ratio<tol_grad]
+        d[2][norm_ratio<tol_grad] = (n[2] - aux[1])[norm_ratio<tol_grad]
+        d[3][norm_ratio<tol_grad] = (n[3] - aux[2])[norm_ratio<tol_grad]
+
+        # For those where it was not, input random small disturbance
+        d[1][norm_ratio>=tol_grad] = 0.05*torch.randn_like(d[1][norm_ratio>=tol_grad])
+        d[2][norm_ratio>=tol_grad] = 0.05*torch.randn_like(d[2][norm_ratio>=tol_grad])
+        d[3][norm_ratio>=tol_grad] = 0.05*torch.randn_like(d[3][norm_ratio>=tol_grad])
+
+
+        if debug:
+            print(" d[0]: ", d[0].abs().max().data.cpu().numpy() ," d[1]: ", d[1].abs().max().data.cpu().numpy()," d[2]: ", d[2].abs().max().data.cpu().numpy()," d[3]: ", d[3].abs().max().data.cpu().numpy())
+            breakpoint()
+            time.sleep(0.000001)
+
+        for i in range(len(n)):
+            model.d[i] = d[i].clone()
+
 
     for p in model.parameters():
         p.requires_grad = True
