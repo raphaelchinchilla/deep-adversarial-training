@@ -20,16 +20,16 @@ import torch.nn.functional as F
 
 from deepillusion.torchattacks import PGD, RFGSM
 
-from deep_adv.adversary.layer_attacks import DistortNeurons as DN
-from deep_adv.adversary.layer_attacks import DistortNeuronsWithInput as DNWI
-from deep_adv.adversary.layer_attacks import DistortNeuronsBounded as DNB
-from deep_adv.adversary.layer_attacks import DistortNeuronsManual as DNM
-from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradient as DNCG
-
-
-
-
-
+# from deep_adv.adversary.layer_attacks import DistortNeurons as DN
+# from deep_adv.adversary.layer_attacks import DistortNeuronsWithInput as DNWI
+# from deep_adv.adversary.layer_attacks import DistortNeuronsBounded as DNB
+# from deep_adv.adversary.layer_attacks import DistortNeuronsManual as DNM
+# from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradient as DNCG
+# from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradientLineSearch as DNCGLS
+# from deep_adv.adversary.layer_attacks import DistortNeuronsGDLineSearch
+# from deep_adv.adversary.layer_attacks import DistortNeuronsGDBarrier
+# from deep_adv.adversary.layer_attacks import DistortNeuronsGDCoordinate
+from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradientLineSearchV2
 
 
 def train(model, train_loader, optimizer, scheduler):
@@ -91,7 +91,14 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
         # DNWI(**dn_args)
         # DNB(**dn_args)
         # DNM(**dn_args)
-        DNCG(**dn_args)
+        # DNCG(**dn_args)
+        # DNCGLS(**dn_args)
+        # DNGDLS(**dn_args)
+        # DistortNeuronsGDBarrier(**dn_args)
+        # DistortNeuronsGDCoordinate(**dn_args)
+        DistortNeuronsConjugateGradientLineSearchV2(**dn_args)
+
+
 
         optimizer.zero_grad()
         output = model(data)
