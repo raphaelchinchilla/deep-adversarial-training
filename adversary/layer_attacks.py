@@ -28,6 +28,12 @@ import torch.optim as optim
 
 
 def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
+    '''
+    Descriptions:
+        Conjugate Gradient
+        No line search but diminishing step
+        Projection of n[0] into correct set (abs(n[0]-x)<0.3, 0<=n[0]<=1)
+    '''
     # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
@@ -232,6 +238,12 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         p.requires_grad = True
 
 def DistortNeuronsConjugateGradientLineSearch(model, x, y_true, lamb, mu, optimizer=None):
+    '''
+    Descriptions:
+        Conjugate Gradient
+        Line search using Armijo Rule
+        Projection of n[0] into correct set (abs(n[0]-x)<0.3, 0<=n[0]<=1)
+    '''
     # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
@@ -502,6 +514,12 @@ def DistortNeuronsConjugateGradientLineSearch(model, x, y_true, lamb, mu, optimi
         p.requires_grad = True
 
 def DistortNeuronsConjugateGradientLineSearchV2(model, x, y_true, lamb, mu, optimizer=None):
+    '''
+    Descriptions:
+        Conjugate Gradient
+        Line search using Armijo Rule
+        No projection of n[0]  but included penalization norm(n[0]-0.5) to incentivize n[0] to stay in (0,1)
+    '''
     # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
@@ -510,7 +528,7 @@ def DistortNeuronsConjugateGradientLineSearchV2(model, x, y_true, lamb, mu, opti
     lamb_d0 = 150
     lamb_layers = 160 # how many times regularization in inside layers
     tol_grad=1e-3 # value gradient problem considered solved
-    debug = False# set to true to activate break points and prints
+    debug = True# set to true to activate break points and prints
     #Code
     model.eval()
     device = model.parameters().__next__().device
@@ -729,234 +747,15 @@ def DistortNeuronsConjugateGradientLineSearchV2(model, x, y_true, lamb, mu, opti
         p.requires_grad = True
 
 
-def DistortNeuronsConjugateGradientV2(model, x, y_true, lamb, mu, optimizer=None):
-    # Parameters
-    num_iters = 200
-    eps_input = 0.3 # value to clamp input disturbance
-    eps_layers = 0.5 # value to clamp layer disturbance
-    lamb_input = 120
-    lamb_d0 = 150
-    lamb_layers = 160 # how many times regularization in inside layers
-    tol_grad=1e-3 # value gradient problem considered solved
-    debug = False# set to true to activate break points and prints
-    #Code
-    model.eval()
-    device = model.parameters().__next__().device
-    criterion = nn.CrossEntropyLoss(reduction="none")
-
-    for p in model.parameters():
-        p.requires_grad = False
-
-    layers = list(model.children())
-
-    # Initializing the nodes, the descent direction and the next node
-    n = [None] * (len(model.n)-1)
-    direct = [None] * (len(model.n)-1)
-    n_next = [None] * (len(model.n)-1)
-    grad_prev = [None] * (len(model.n)-1)
-    for i in range(len(n)):
-        n[i] = torch.zeros(model.n[i].size()).to(device)
-        direct[i] = torch.zeros(model.n[i].size()).to(device)
-        n_next[i] = torch.zeros(model.n[i].size()).to(device)
-        grad_prev[i] = torch.zeros(model.n[i].size()).to(device)
-
-    # Initializing the same list but after matrix multiplication so operations can be reused
-    Mn = [None] * (len(model.n)-1)
-    Mdirect = [None] * (len(model.n)-1)
-    Mn_next = [None] * (len(model.n)-1)
 
 
-    norm_grad=torch.zeros((x.size(0)),device=device)
-    alpha=mu*torch.ones((x.size(0),1),device=device)
-    loss_next=torch.zeros((x.size(0)),device=device)
-
-    # Defining some function
-    crit=torch.nn.MSELoss(reduction='none')
-    def rho(z,w):
-        return crit(z.view(z.size(0), -1),w.view(w.size(0), -1)).sum(1)
-    def reg(z):
-        return (z.view(z.size(0), -1)**2).sum(1)
-    def batch_dot_prod(z,w):
-        return (z.view(x.size(0), -1)*w.view(x.size(0), -1)).sum(1)
-
-    def compute_loss(n,Mn,serching_step=torch.tensor([True]*x.size(0))):
-        # Calculating the loss
-        loss =  lamb_d0*rho(n[0][serching_step],x[serching_step])+lamb_input*reg(n[0][serching_step]-0.5)
-        loss += lamb_layers*rho(n[1][serching_step],F.max_pool2d(F.leaky_relu(Mn[0]), (2, 2))[serching_step])
-        loss += lamb_layers*rho(n[2][serching_step],F.max_pool2d(F.leaky_relu(Mn[1]), (2, 2)).view(x.size(0), -1)[serching_step])
-        loss += lamb_layers*rho(n[3][serching_step],F.leaky_relu(Mn[2][serching_step]))
-        loss += -criterion(Mn[3][serching_step], y_true[serching_step])
-        return loss
-
-
-    with torch.no_grad():
-        x=layers[0](x)
-        n[0]=x+eps_input*(2*torch.rand(x.size())-1).to(device)
-        n[0]=torch.clamp(n[0],0.,1.)
-        Mn[0]=layers[1](n[0])
-        n[1]=F.max_pool2d(F.leaky_relu(Mn[0]), (2, 2))+eps_layers*(2*torch.rand(model.n[1].size())-1).to(device)
-        Mn[1]=layers[2](n[1])
-        n[2]=F.max_pool2d(F.leaky_relu(Mn[1]), (2, 2)).view(x.size(0), -1)+eps_layers*(2*torch.rand(model.n[2].size())-1).to(device)
-        Mn[2]=layers[3](n[2])
-        n[3]=F.leaky_relu(Mn[2])+eps_layers*(2*torch.rand(model.n[3].size())-1).to(device)
-        Mn[3]=layers[4](n[3])
-
-
-    # Initialize some parameters that need the size of Mn[i] to be initialized
-    for i in range(len(n)):
-        Mdirect[i]=torch.zeros_like(Mn[i])
-        Mn_next[i]=torch.zeros_like(Mn[i])
-
-
-
-    solver = 'running'
-    iter=0
-    while iter<= num_iters and solver=='running':
-        iter+=1
-
-        for i in range(len(n)):
-            n[i].requires_grad_(True)
-            Mn[i]=layers[i+1](n[i])
-
-
-
-        loss=compute_loss(n,Mn)
-
-        loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-
-        with torch.no_grad():
-            norm_grad_prev=norm_grad.clone()
-            norm_grad.zero_()
-
-            # First part: Finding conjugated direction for descent
-            for i in range(len(n)):
-                norm_grad+=batch_dot_prod(n[i].grad,n[i].grad)
-            if iter == 1:
-                norm_grad_init=norm_grad.clone()
-                loss_init=loss.detach().clone()
-                for i in range(len(n)):
-                    direct[i]=-n[i].grad.clone() # Update the search direction with the new step to go
-                    grad_prev[i]=n[i].grad.clone()
-                grad_prod_direct=-norm_grad
-                beta=torch.zeros((x.size(0),1),device=device)
-            else:
-                # Calculating beta
-                beta=(norm_grad/norm_grad_prev).view(x.size(0),-1)
-                for i in range(len(n)):
-                    beta-=(batch_dot_prod(n[i].grad,grad_prev[i])/norm_grad_prev).view(x.size(0),-1)
-                    grad_prev[i]=n[i].grad.clone()
-                beta.relu_()
-                grad_prod_direct.zero_()
-                for i in range(len(n)):
-                    direct[i].view(x.size(0),-1).mul_(beta) # Multiply the previous step direction of each batch by the value of beta that is equivalent. Equivalent to direct[i]*=beta.view([-1]+[1]*(direct[i].ndim-1)).expand_as(direct[i])
-                    direct[i]+=-n[i].grad # Update the search direction with the new step to go
-                    grad_prod_direct+=batch_dot_prod(n[i].grad,direct[i]) # This value is used to check whether the new direction is a descent direction and used in the selection of the optimal descent step
-
-
-                # Checking if it is a descent direction and correcting it in the negative case
-                isdescent=grad_prod_direct>0
-                if torch.any(isdescent):
-                    for i in range(len(n)):
-                        direct[i][isdescent]=-n[i].grad[isdescent].clone()
-                    grad_prod_direct[isdescent]=-norm_grad[isdescent]
-                    if debug:
-                        beta[isdescent]=0
-
-
-            # Second part: Computing optimal step size using Armijo Rule
-
-            # Maximum value that step can take
-
-            loss_next.zero_()
-            if iter ==1:
-                for i in range(len(n)):
-                    Mdirect[i]=layers[i+1](direct[i])
-                    Mn_next[i]=torch.zeros_like(Mn[i])
-            else:
-                alpha*=10
-                for i in range(len(n)):
-                    Mdirect[i]=layers[i+1](direct[i])
-                    Mn_next[i].zero_()
-
-            serching_step=torch.tensor([True]*x.size(0))
-            while torch.any(serching_step) and alpha.min()>=mu*1e-15:
-                # Update the new value of the neurons with the step direction alpha.
-
-                for i in range(len(n)):
-                    n_next[i][serching_step]=n[i][serching_step]+direct[i].view(x.size(0),-1)[serching_step].mul(alpha[serching_step]).view_as(n[i][serching_step])
-                    Mn_next[i][serching_step]=Mn[i][serching_step]+Mdirect[i].view(x.size(0),-1)[serching_step].mul(alpha[serching_step]).view_as(Mn[i][serching_step])
-
-                # Calculating the next loss. This step could be optimize by avoiding to compute the loss for the directions already found
-                loss_next[serching_step]=compute_loss(n_next,Mn_next,serching_step)
-                # Checking whether the Armijo criteria is satisfied
-                serching_step[(loss-loss_next)>=-0*alpha.squeeze()*grad_prod_direct]=False
-
-                # For the elements in the batch where it is not, ie, serching_step=True, update the step
-                alpha[serching_step]*=0.3
-
-
-            for i in range(len(n)):
-                n[i].grad.zero_()
-                n[i]=n_next[i].clone()
-                Mn[i]=Mn_next[i]
-            # breakpoint()
-
-            if iter>=10:
-                norm_ratio=norm_grad/norm_grad_init
-                if norm_ratio.max()<tol_grad:
-                    solver='solved'
-                elif iter>=20 and (norm_ratio.min()>=1 or (loss_init-loss).max()<0):
-                    solver='failed'
-                elif iter>=40 and norm_ratio.median()<tol_grad:
-                    solver='partially solved'
-                # elif norm_grad_prev.max()<norm_grad.max():
-                    # solver='failed'
-
-            if debug:
-                print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(Mn_next[3], y_true).max().data.cpu().numpy())
-                # print("      Grad n[0]: ", n[0].grad.abs().mean().data.cpu().numpy()," Grad n[1]: ", n[1].grad.abs().mean().data.cpu().numpy()," Grad n[2]: ", n[2].grad.abs().mean().data.cpu().numpy()," Grad n[3]: ", n[3].grad.abs().mean().data.cpu().numpy())
-                print("      Beta:", beta.median().data.cpu().numpy(),"norm_grad:", (norm_grad/norm_grad_init).max().data.cpu().numpy(), "alpha: ", alpha.min().data.cpu().numpy())
-
-
-
-    if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n[0])) or torch.any(torch.isnan(n[1])) or torch.any(torch.isnan(n[2])):
-        raise ValueError('Diverged')
-    # if torch.any(loss.abs()>1e5) or torch.any(n[0].abs()>1e3) or torch.any(n[1].abs()>1e3) or torch.any(n[2].abs()>1e3) or torch.any(n[3].abs()>1e3):
-        # breakpoint()
-
-    with torch.no_grad():
-
-        disturbance = [None] * (len(model.n)-1)
-        # for i in range(1,len(n)):
-        #     disturbance[i] = torch.zeros_like(model.n[i])
-
-        # Input disturbance is always considered as solved. Worst case it is just noise
-
-        disturbance[0]=x-n[0]
-        disturbance[1]=n[1]-F.max_pool2d(F.leaky_relu(Mn[0]), (2, 2))
-        disturbance[2]=n[2]-F.max_pool2d(F.leaky_relu(Mn[1]), (2, 2)).view(x.size(0), -1)
-        disturbance[3]=n[3]-F.leaky_relu(Mn[2])
-
-
-        if debug:
-            print("      n[0]", (n[0]-0.5).abs().max().data.cpu().numpy(), " d[0]: ", disturbance[0].abs().max().data.cpu().numpy() ," d[1]: ", disturbance[1].abs().max().data.cpu().numpy()," d[2]: ", disturbance[2].abs().max().data.cpu().numpy()," d[3]: ", disturbance[3].abs().max().data.cpu().numpy())
-            print(solver)
-            # breakpoint()
-            # time.sleep(0.000001)
-
-        for i in range(len(n)):
-            model.d[i] = disturbance[i]
-
-        if False and solver!="solved":
-            print(solver)
-            print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(Mn_next[3], y_true).max().data.cpu().numpy())
-            print("      n[0]", (n[0]-0.5).abs().max().data.cpu().numpy(), " d[0]: ", disturbance[0].abs().max().data.cpu().numpy() ," d[1]: ", disturbance[1].abs().max().data.cpu().numpy()," d[2]: ", disturbance[2].abs().max().data.cpu().numpy()," d[3]: ", disturbance[3].abs().max().data.cpu().numpy())
-            # breakpoint()
-
-    for p in model.parameters():
-        p.requires_grad = True
-
-def DistortNeuronsGDLineSearch(model, x, y_true, lamb, mu, optimizer=None):
+def DistortNeuronsGradientDescentLineSearch(model, x, y_true, lamb, mu, optimizer=None):
+    '''
+    Descriptions:
+        Gradient Descent
+        Line search using Armijo Rule
+        Projection of n[0] into correct set (abs(n[0]-x)<0.3, 0<=n[0]<=1)
+    '''
     # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
@@ -1209,7 +1008,14 @@ def DistortNeuronsGDLineSearch(model, x, y_true, lamb, mu, optimizer=None):
         p.requires_grad = True
 
 
-def DistortNeuronsGDCoordinate(model, x, y_true, lamb, mu, optimizer=None):
+def DistortNeuronsGradientDescentCoordinate(model, x, y_true, lamb, mu, optimizer=None):
+    '''
+    Descriptions:
+        Coordinate Descent, alternate between optimizing n[0] and projecting it and the optimizing n[1], n[2] and n[3]
+        Gradient Descent
+        Line search using Armijo Rule
+        Projection of n[0] into correct set (abs(n[0]-x)<0.3, 0<=n[0]<=1)
+    '''
     # Parameters
     num_iters = 200
     eps_input = 0.3 # value to clamp input disturbance
@@ -1350,6 +1156,7 @@ def DistortNeuronsGDCoordinate(model, x, y_true, lamb, mu, optimizer=None):
 
         # Part 2: Optimizing the hidden layers
 
+
         # 2.1: Computing Descent Direction for n[0]
         for i in range(1,len(n)):
             n[i].requires_grad_(True)
@@ -1362,6 +1169,7 @@ def DistortNeuronsGDCoordinate(model, x, y_true, lamb, mu, optimizer=None):
         for i in range(1,len(n)):
             n[i].requires_grad_(False)
             Mn[i]=layers[i+1](n[i]).detach_()
+
 
         norm_grad_hidden.zero_()
         for i in range(1,len(n)):
@@ -1453,222 +1261,14 @@ def DistortNeuronsGDCoordinate(model, x, y_true, lamb, mu, optimizer=None):
         p.requires_grad = True
 
 
-def DistortNeuronsGDBarrier(model, x, y_true, lamb, mu, optimizer=None):
-    # Parameters
-    from torch import log
-    num_iters = 200
-    eps_input = 0.3 # value to clamp input disturbance
-    eps_layers = 0.2 # value to clamp layer disturbance
-    lamb_layers = 20. # how many times regularization in inside layers
-    lamb_barie=50.
-    tol_grad=1e-3 # value gradient problem considered solved
-    #lamb_reg = 0.01 # regularization of the intermediate layers
-    debug = True# set to true to activate break points and prints
-    #Code
-    model.eval()
-    device = model.parameters().__next__().device
-    criterion = nn.CrossEntropyLoss(reduction="none")
 
-    for p in model.parameters():
-        p.requires_grad = False
-
-    layers = list(model.children())
-
-    # Initializing the nodes, the descent direction and the next node
-    n = [None] * (len(model.n)-1)
-    n_next = [None] * (len(model.n)-1)
-    d = [None] * (len(model.n)-1)
-    for i in range(len(n)):
-        n[i] = torch.zeros(model.n[i].size()).to(device)
-        n_next[i] = torch.zeros(model.n[i].size()).to(device)
-        d[i] = torch.zeros_like(model.n[i])
-
-
-    # Initializing the same list but after matrix multiplication so operations can be reused
-    Mn = [None] * (len(model.n)-1)
-    Mgrad = [None] * (len(model.n)-1)
-    Mn_next = [None] * (len(model.n)-1)
-
-    alpha=mu*torch.ones((x.size(0),1),device=device)
-    loss_next=torch.zeros((x.size(0)),device=device)
-    norm_grad=torch.zeros((x.size(0)),device=device)
-
-
-
-    # Defining some function
-    crit=torch.nn.MSELoss(reduction='none')
-    def rho(z,w):
-        return crit(z.view(z.size(0), -1),w.view(w.size(0), -1)).sum(1)
-    def reg(z):
-        return (z.view(x.size(0), -1)**2).sum(1)
-    def batch_dot_prod(z,w):
-        return (z.view(x.size(0), -1)*w.view(x.size(0), -1)).sum(1)
-
-    def compute_loss(n,Mn,serching_step=torch.tensor([True]*x.size(0))):
-        # Calculating the loss
-        #THERE MIGHT BE SOMTHING ODD WITH THIS, IS IT CALCULATING THE LOSSES CORRECTLY?
-
-        d[0]=n[0].view(x.size(0), -1)[serching_step]-x.view(x.size(0), -1)[serching_step]
-        d[1]=n[1].view(x.size(0), -1)[serching_step]-F.max_pool2d(F.leaky_relu(Mn[0]), (2, 2)).view(x.size(0), -1)[serching_step]
-        d[2]=n[2].view(x.size(0), -1)[serching_step]-F.max_pool2d(F.leaky_relu(Mn[1]), (2, 2)).view(x.size(0), -1)[serching_step]
-        d[3]=n[3].view(x.size(0), -1)[serching_step]-F.leaky_relu(Mn[2].view(x.size(0), -1)[serching_step])
-
-        #Possible improvement:INCLUDE HERE SOME TESTING TO CHECK WHERE IT IS NAN and where is is not
-        # breakpoint()
-
-        loss = torch.sum(-lamb_barie*log(d[0]+eps_input)-lamb_barie*log(-d[0]+eps_input),1)
-        loss +=torch.sum(-lamb_barie*log(-x.view(x.size(0), -1)[serching_step]-d[0]+1.)-lamb_barie*log(x.view(x.size(0), -1)[serching_step]+d[0]),1)
-        loss +=torch.sum(-lamb_barie*log(d[1]+eps_layers)-lamb_barie*log(-d[1]+eps_layers)+lamb_layers*d[1]**2,1)
-        loss +=torch.sum(-lamb_barie*log(d[2]+eps_layers)-lamb_barie*log(-d[2]+eps_layers)+lamb_layers*d[2]**2,1)
-        loss +=torch.sum(-lamb_barie*log(d[3]+eps_layers)-lamb_barie*log(-d[3]+eps_layers)+lamb_layers*d[3]**2,1)
-        loss += -criterion(Mn[3][serching_step], y_true[serching_step])
-        return loss
-
-
-    with torch.no_grad():
-        x=layers[0](x)
-        n[0]=x+0.1*eps_input*(2*torch.rand(x.size())-1).to(device)
-        n[0]=torch.clamp(n[0],0.1,0.9)
-        Mn[0]=layers[1](n[0])
-        n[1]=F.max_pool2d(F.leaky_relu(Mn[0]), (2, 2))+0.1*eps_layers*(2*torch.rand(model.n[1].size())-1).to(device)
-        Mn[1]=layers[2](n[1])
-        n[2]=F.max_pool2d(F.leaky_relu(Mn[1]), (2, 2)).view(x.size(0), -1)+0.1*eps_layers*(2*torch.rand(model.n[2].size())-1).to(device)
-        Mn[2]=layers[3](n[2])
-        n[3]=F.leaky_relu(Mn[2])+0.1*eps_layers*(2*torch.rand(model.n[3].size())-1).to(device)
-
-
-
-
-    solver = 'running'
-    iter=0
-    while iter<= num_iters and solver=='running':
-        iter+=1
-
-
-        for i in range(len(n)):
-            n[i].requires_grad_(True)
-            Mn[i]=layers[i+1](n[i])
-
-
-
-        loss=compute_loss(n,Mn)
-
-        loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-
-        with torch.no_grad():
-            norm_grad.zero_()
-            # First part: Computing Descent Direction
-            for i in range(len(n)):
-                norm_grad+=batch_dot_prod(n[i].grad,n[i].grad)
-            if iter == 1:
-                norm_grad_init=norm_grad.clone()
-
-            # Second part: Computing optimal step size using Armijo Rule
-
-            # Maximum value that step can take
-
-            # IN HERE WE COULD FIND IN CLOSED FORM AN ALPHA SUCH THAT THE THE FIRST INEQUALITY CONSTRAINT IS RESPECTED
-            # breakpoint()
-
-            if iter ==1:
-                for i in range(len(n)):
-                    Mgrad[i]=layers[i+1](n[i].grad)
-                    Mn_next[i]=torch.zeros_like(Mn[i])
-            else:
-                alpha*=10
-                loss_next.zero_()
-                for i in range(len(n)):
-                    Mgrad[i]=layers[i+1](n[i].grad)
-                    Mn_next[i].zero_()
-
-
-            serching_step=torch.tensor([True]*x.size(0))
-            while torch.any(serching_step) and alpha.min()>=mu*1e-15:
-                # Update the new value of the neurons with the step direction alpha.
-
-
-
-                for i in range(len(n)):
-                    n_next[i][serching_step]=n[i][serching_step]-n[i].grad.view(x.size(0),-1)[serching_step].mul(alpha[serching_step]).view_as(n[i][serching_step])
-                    Mn_next[i][serching_step]=Mn[i][serching_step]-Mgrad[i].view(x.size(0),-1)[serching_step].mul(alpha[serching_step]).view_as(Mn[i][serching_step])
-
-
-                # Calculating the next loss. This step could be optimize by avoiding to compute the loss for the directions already found
-                loss_next[serching_step]=compute_loss(n_next,Mn_next,serching_step)
-                # Checking whether the Armijo criteria is satisfied
-                # maybe we should look into armijo for another criteria, taking more care whether it is the full loss or just the last aspect that we care about
-                serching_step[(loss-loss_next)>0*alpha.squeeze()*norm_grad]=False
-
-                # For the elements in the batch where it is not, ie, serching_step=True, update the step
-                alpha[serching_step]*=0.3
-
-
-
-            lamb_barie*=0.9
-
-            for i in range(len(n)):
-                n[i][~torch.isnan(loss_next)]=n_next[i][~torch.isnan(loss_next)].clone()
-                breakpoint()
-
-            # if torch.any(torch.isnan(loss_next)):
-                # breakpoint()
-
-
-
-            # breakpoint()
-
-            if iter>=10:
-                norm_ratio=norm_grad/norm_grad_init
-                if norm_ratio.max()<lamb_barie*tol_grad:
-                    solver='solved'
-                elif iter>=40 and norm_ratio.median()<lamb_barie*tol_grad:
-                    solver='partially solved'
-                elif torch.all(torch.isnan(loss_next)):
-                    solver='hitting all constraints'
-                # elif norm_grad_prev.max()<norm_grad.max():
-                    # solver='failed'
-
-            if debug:
-                print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(Mn_next[3], y_true).max().data.cpu().numpy())
-                # print("      Grad n[0]: ", n[0].grad.abs().mean().data.cpu().numpy()," Grad n[1]: ", n[1].grad.abs().mean().data.cpu().numpy()," Grad n[2]: ", n[2].grad.abs().mean().data.cpu().numpy()," Grad n[3]: ", n[3].grad.abs().mean().data.cpu().numpy())
-                print("      norm_grad:", (norm_grad/norm_grad_init).max().data.cpu().numpy(), "alpha: ", alpha.min().data.cpu().numpy())
-
-
-
-    if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n[0])) or torch.any(torch.isnan(n[1])) or torch.any(torch.isnan(n[2])):
-        raise ValueError('Diverged')
-    # if torch.any(loss.abs()>1e5) or torch.any(n[0].abs()>1e3) or torch.any(n[1].abs()>1e3) or torch.any(n[2].abs()>1e3) or torch.any(n[3].abs()>1e3):
-        # breakpoint()
-
-    with torch.no_grad():
-
-        d[0]=x-n_next[0]
-        d[1]=n_next[1]-F.max_pool2d(F.leaky_relu(Mn_next[0]), (2, 2))
-        d[2]=n[2]-F.max_pool2d(F.leaky_relu(Mn[1]), (2, 2)).view(x.size(0), -1)
-        d[3]=n[3]-F.leaky_relu(Mn[2])
-
-
-
-        if debug:
-            print(" d[0]: ", d[0].abs().max().data.cpu().numpy() ," d[1]: ", d[1].abs().max().data.cpu().numpy()," d[2]: ", d[2].abs().max().data.cpu().numpy()," d[3]: ", d[3].abs().max().data.cpu().numpy())
-            print(solver)
-            # breakpoint()
-            # time.sleep(0.000001)
-
-        for i in range(len(n)):
-            model.d[i] = d[i].view_as(n[i])
-
-        if False and solver!="solved":
-            print(solver)
-            print("Iter:", iter, ", Loss max: ", loss.max().data.cpu().numpy(), ", Loss min:", loss.min().data.cpu().numpy(), ", Output Loss", criterion(Mn_next[3], y_true).max().data.cpu().numpy())
-            print(" d[0]: ", d[0].abs().max().data.cpu().numpy() ," d[1]: ", d[1].abs().max().data.cpu().numpy()," d[2]: ", d[2].abs().max().data.cpu().numpy()," d[3]: ", d[3].abs().max().data.cpu().numpy())
-            # breakpoint()
-
-    for p in model.parameters():
-        p.requires_grad = True
-
-
-def DistortNeuronsManual(model, x, y_true, lamb, mu, optimizer=None):
+def DistortNeuronsGradientDescent(model, x, y_true, lamb, mu, optimizer=None):
+    '''
+    Descriptions:
+        Gradient Descent
+        No line search
+        Projection of n[0] into correct set (abs(n[0]-x)<0.3, 0<=n[0]<=1)
+    '''
     model.eval()
     num_iters = 10
     eps_input = 0.3 # value to clamp input disturbance
@@ -1746,11 +1346,7 @@ def DistortNeuronsManual(model, x, y_true, lamb, mu, optimizer=None):
         if torch.any(loss.abs()>1e5) or torch.any(n[0].abs()>1e3) or torch.any(n[1].abs()>1e3) or torch.any(n[2].abs()>1e3) or torch.any(n[3].abs()>1e3):
             breakpoint()
 
-        if optimizer is not None:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-        else:
-            loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
+        loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
 
 
         norm_grad=float("-inf")
@@ -1795,184 +1391,4 @@ def DistortNeuronsManual(model, x, y_true, lamb, mu, optimizer=None):
         p.requires_grad = True
 
 
-def DistortNeuronsWithInput(model, x, y_true, lamb, mu, optimizer=None):
-    model.eval()
-    num_iters = 100
-    device = model.parameters().__next__().device
-    model.d[0] = (2*torch.randn(x.size())).to(device)
-    model.d[1] = (2*torch.randn(model.n[1].size())).to(device)
-    model.d[2] = (2*torch.randn(model.n[2].size())).to(device)
-    model.d[3] = (2*torch.randn(model.n[3].size())).to(device)
-
-
-    _ = model(x)
-
-    criterion = nn.CrossEntropyLoss(reduction="none")
-
-    layers = list(model.children())
-
-    for p in model.parameters():
-        p.requires_grad = False
-
-    n_new = [None] * (len(model.n)-1)
-    for i in range(len(n_new)):
-        n_new[i] = model.n[i].detach().clone()
-        n_new[i].requires_grad_(True)
-
-    # breakpoint()
-    # optimizer_dn = optim.Adam(n_new, lr=mu)
-    optimizer_dn = optim.SGD(n_new, lr=mu,momentum=0.9)
-    with torch.no_grad():
-        x=layers[0](x)
-
-    def rho(z):
-        return torch.sum(z**2,1)
-        # return torch.norm(z,p=1,dim=1)
-
-    # def rho(z,w):
-    #     zw=(z.view(x.size(0), -1)-w.view(x.size(0), -1))
-    #     return torch.sum(zw**2,1)
-    #     # return torch.norm(zw,p=1,dim=1)
-
-
-    for _ in range(num_iters):
-        # loss layer is added from last layer to input layer
-        loss = -criterion(layers[-1](n_new[3]), y_true)
-        loss += lamb * rho(n_new[3] - F.leaky_relu(layers[3](n_new[2])))
-        loss += lamb * rho(n_new[2] - F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1))
-        loss += lamb * rho((n_new[1] - F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2))).view(x.size(0), -1))
-        loss += lamb * rho((n_new[0] - x).view(x.size(0), -1))
-
-
-        if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n_new[0])) or torch.any(torch.isnan(n_new[1])) or torch.any(torch.isnan(n_new[2])):
-            breakpoint()
-        if torch.any(loss.abs()>1e5) or torch.any(n_new[0].abs()>1e3) or torch.any(n_new[1].abs()>1e3) or torch.any(n_new[2].abs()>1e3) or torch.any(n_new[3].abs()>1e3):
-            breakpoint()
-        if optimizer is not None:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward(gradient=torch.ones_like(
-                    y_true, dtype=torch.float))
-        else:
-            loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-
-        optimizer_dn.step()
-        optimizer_dn.zero_grad()
-
-        with torch.no_grad():
-            n_new[0]=torch.clamp(n_new[0],-1,1)
-
-
-
-    with torch.no_grad():
-        model.d[0] = n_new[0] - x
-        model.d[1] = n_new[1] - F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2))
-        model.d[2] = n_new[2] - F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1)
-        model.d[3] = n_new[3] - F.leaky_relu(layers[3](n_new[2]))
-
-
-
-
-    for p in model.parameters():
-        p.requires_grad = True
-
-def DistortNeuronsBounded(model, x, y_true, lamb, mu, optimizer=None):
-    model.eval()
-    num_iters = 100
-    eps = 0.3 # value to clamp tensor
-    device = model.parameters().__next__().device
-    model.d[0] = eps*(2*torch.rand(x.size())-1).to(device)
-    model.d[1] = eps*(2*torch.rand(model.n[1].size())-1).to(device)
-    model.d[2] = eps*(2*torch.rand(model.n[2].size())-1).to(device)
-    model.d[3] = eps*(2*torch.rand(model.n[3].size())-1).to(device)
-
-
-
-    _ = model(x)
-
-    criterion = nn.CrossEntropyLoss(reduction="none")
-
-    layers = list(model.children())
-
-    for p in model.parameters():
-        p.requires_grad = False
-
-    n_new = [None] * (len(model.n)-1)
-    for i in range(len(n_new)):
-        n_new[i] = model.n[i].detach().clone()
-        n_new[i].requires_grad_(True)
-
-    aux = [None] * (len(model.n)-2)
-
-
-    # breakpoint()
-    optimizer_dn = optim.Adam(n_new, lr=mu)
-    # optimizer_dn = optim.SGD(n_new, lr=mu,momentum=0.9)
-    with torch.no_grad():
-        x=layers[0](x)
-
-    def rho(z):
-        return torch.sum(z**2,1)
-        # return torch.norm(z,p=1,dim=1)
-
-    # def rho(z,w):
-    #     zw=(z.view(x.size(0), -1)-w.view(x.size(0), -1))
-    #     return torch.sum(zw**2,1)
-    #     # return torch.norm(zw,p=1,dim=1)
-
-
-    for _ in range(num_iters):
-        # loss layer is added from last layer to input layer
-
-        with torch.no_grad():
-            n_new[0]+=-n_new[0]+x+torch.clamp(n_new[0] - x,-eps,eps)
-        aux[0]=F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2))
-        with torch.no_grad():
-            n_new[1]+=-n_new[1]+aux[0]+torch.clamp(n_new[1] - aux[0],-eps,eps)
-        aux[1]=F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1)
-        with torch.no_grad():
-            n_new[2]+=-n_new[2]+aux[1]+torch.clamp(n_new[2] - aux[1],-eps,eps)
-        aux[2]=F.leaky_relu(layers[3](n_new[2]))
-        with torch.no_grad():
-            n_new[3]+=-n_new[3]+aux[2]+torch.clamp(n_new[3] - aux[2],-eps,eps)
-
-
-        loss = -criterion(layers[-1](n_new[3]), y_true)
-        loss += lamb * rho(n_new[3] - aux[2])
-        loss += lamb * rho(n_new[2] - aux[1])
-        loss += lamb * rho((n_new[1] - aux[0]).view(x.size(0), -1))
-        loss += lamb * rho((n_new[0] - x).view(x.size(0), -1))
-
-
-        if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n_new[0])) or torch.any(torch.isnan(n_new[1])) or torch.any(torch.isnan(n_new[2])):
-            breakpoint()
-        if torch.any(loss.abs()>1e5) or torch.any(n_new[0].abs()>1e3) or torch.any(n_new[1].abs()>1e3) or torch.any(n_new[2].abs()>1e3) or torch.any(n_new[3].abs()>1e3):
-            breakpoint()
-        if optimizer is not None:
-            with amp.scale_loss(loss, optimizer) as scaled_loss:
-                scaled_loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-        else:
-            loss.backward(gradient=torch.ones_like(y_true, dtype=torch.float))
-
-
-
-
-        optimizer_dn.step()
-        optimizer_dn.zero_grad()
-
-        with torch.no_grad():
-            n_new[0]=torch.clamp(n_new[0],-1,1)
-
-
-
-    with torch.no_grad():
-        model.d[0] = torch.clamp(n_new[0] - x,-eps,+eps)
-        model.d[1] = torch.clamp(n_new[1] - F.max_pool2d(F.leaky_relu(layers[1](n_new[0])), (2, 2)),-eps,+eps)
-        model.d[2] = torch.clamp(n_new[2] - F.max_pool2d(F.leaky_relu(layers[2](n_new[1])), (2, 2)).view(x.size(0), -1),-eps,+eps)
-        model.d[3] = torch.clamp(n_new[3] - F.leaky_relu(layers[3](n_new[2])),-eps,+eps)
-
-
-
-
-    for p in model.parameters():
-        p.requires_grad = True
 

@@ -58,9 +58,8 @@ def get_arguments():
                               metavar='inf/p', help='Which attack norm to use for training')
     adv_training.add_argument('-tr_eps', '--tr_epsilon', type=float,
                               default=0.3, metavar='', help='attack budget for training')
-    adv_training.add_argument("-tr_a", "--tr_alpha", type=float, default=0.4,
-                              metavar="", help="random fgsm budget",
-                              )
+    adv_training.add_argument("-tr_a", "--tr_alpha", type=float, default=0.375,
+                              metavar="", help="random fgsm budget")
     adv_training.add_argument('-tr_Ss', '--tr_step_size', type=float,
                               default=0.01, metavar='', help='Step size for PGD, adv training')
     adv_training.add_argument('-tr_Ni', '--tr_num_iterations', type=int, default=40,

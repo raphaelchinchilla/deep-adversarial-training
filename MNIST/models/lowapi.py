@@ -11,76 +11,10 @@ import numpy as np
 from deep_adv.MNIST.models.tools import Normalize
 
 
-class CNN1(nn.Module):
+class CNN(nn.Module):
 
     def __init__(self):
-        super(CNN1, self).__init__()
-
-        # self.norm = Normalize(mean=[0.1307], std=[0.3081])
-        self.norm = Normalize(mean=[0.], std=[1.])
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=5,
-                               stride=1, padding=2, bias=True)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=5,
-                               stride=1, padding=2, bias=True)
-        self.fc1 = nn.Linear(7 * 7 * 64, 1024, bias=True)
-        self.fc2 = nn.Linear(1024, 10, bias=True)
-        self.create_parameters()
-        self.forward(torch.zeros(1, 1, 28, 28))
-
-    def forward(self, x):
-
-        x = self.norm(x)
-        self.n = [None] * 4
-        self.n[0] = F.max_pool2d(F.leaky_relu(self.conv1(x)), (2, 2)) + self.d[0]
-        self.n[1] = F.max_pool2d(F.leaky_relu(self.conv2(self.n[0])), (2, 2))
-        self.n[1] = self.n[1].view(self.n[1].size(0), -1) + self.d[1]
-        self.n[2] = F.leaky_relu(self.fc1(self.n[1])) + self.d[2]
-        self.n[3] = self.fc2(self.n[2])
-
-        return self.n[3]
-
-    def create_parameters(self):
-
-        self.d = [0] * 3
-
-
-class CNN2(nn.Module):
-
-    def __init__(self):
-        super(CNN2, self).__init__()
-
-        self.norm = Normalize(mean=[0.], std=[1.])
-        # self.norm = Normalize(mean=[0.1307], std=[0.3081])
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=5,
-                               stride=1, padding=2, bias=True)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=5,
-                               stride=1, padding=2, bias=True)
-        self.fc1 = nn.Linear(7 * 7 * 64, 1024, bias=True)
-        self.fc2 = nn.Linear(1024, 10, bias=True)
-        self.create_parameters()
-        self.forward(torch.zeros(1, 1, 28, 28))
-
-    def forward(self, x):
-
-        x = self.norm(x)
-        self.m = [None] * 4
-        self.m[0] = self.conv1(x) + self.d[0]
-        self.m[1] = self.conv2(F.max_pool2d(F.leaky_relu(self.m[0]), (2, 2))) + self.d[1]
-        self.m[2] = self.fc1(F.max_pool2d(
-            F.leaky_relu(self.m[1]), (2, 2)).view(self.m[1].size(0), -1)) + self.d[2]
-        self.m[3] = self.fc2(F.leaky_relu(self.m[2]))
-
-        return self.m[3]
-
-    def create_parameters(self):
-
-        self.d = [0] * 3
-
-
-class CNN3(nn.Module):
-
-    def __init__(self):
-        super(CNN3, self).__init__()
+        super(CNN, self).__init__()
 
         self.norm = Normalize(mean=[0.], std=[1.])
         # self.norm = Normalize(mean=[0.1307], std=[0.3081])
