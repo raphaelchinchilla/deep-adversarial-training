@@ -4,6 +4,7 @@ Hyper-parameters
 '''
 
 import argparse
+import os
 
 
 def get_arguments():
@@ -11,8 +12,10 @@ def get_arguments():
     parser = argparse.ArgumentParser(description='PyTorch MNIST')
 
     # Directory
-    parser.add_argument('--directory', type=str, default='/home/raphael/MyModules/deep_adv/MNIST/',
-                        metavar='', help='Directory for checkpoint and stuff')
+    dirname, _ = os.path.split(os.path.abspath(__file__))
+    parser.add_argument("--directory", type=str, default=dirname+"/",
+                        metavar="", help="Directory of experiments",
+                        )
 
     # Dataset
     parser.add_argument('--dataset', type=str, default='mnist',
@@ -38,13 +41,13 @@ def get_arguments():
     neural_net.add_argument('--momentum', type=float, default=0.5,
                             metavar='M', help='SGD momentum (default: 0.5)')
 
-    neural_net.add_argument('--weight_decay', type=float, default=0.0005,
+    neural_net.add_argument('--weight_decay', type=float, default=0.0001,
                             metavar='WD', help='Weight decay (default: 0.0005)')
 
     # Batch Sizes & #Epochs
     neural_net.add_argument('--batch_size', type=int, default=50, metavar='N',
                             help='input batch size for training (default: 50)')
-    neural_net.add_argument('--test_batch_size', type=int, default=10000,
+    neural_net.add_argument('--test_batch_size', type=int, default=256,
                             metavar='N', help='input batch size for testing (default: 1000)')
     neural_net.add_argument('--epochs', type=int, default=20, metavar='N',
                             help='number of epochs to train (default: 10)')
@@ -68,7 +71,7 @@ def get_arguments():
                               help='randomly initialize PGD attack for training')
     adv_training.add_argument('-tr_Nrest', '--tr_num_restarts', type=int, default=1,
                               metavar='', help='number of restarts for pgd for training')
-    adv_training.add_argument('-l', '--lamb', type=float, default=0.1,
+    adv_training.add_argument('-l', '--lamb', type=float, default=2.,
                               metavar='', help='lamb')
     adv_training.add_argument('-m', '--mu', type=float, default=0.5,
                               metavar='', help='mu')

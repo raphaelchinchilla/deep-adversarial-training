@@ -17,7 +17,7 @@ def MNIST(args):
             datasets.MNIST(
                 args.directory + "data",
                 train=True,
-                download=False,
+                download=True,
                 transform=transforms.Compose([transforms.ToTensor()]),
                 ),
             batch_size=args.batch_size,
@@ -29,7 +29,7 @@ def MNIST(args):
             datasets.MNIST(
                 args.directory + "data",
                 train=False,
-                download=False,
+                download=True,
                 transform=transforms.Compose([transforms.ToTensor()]),
                 ),
             batch_size=args.test_batch_size,

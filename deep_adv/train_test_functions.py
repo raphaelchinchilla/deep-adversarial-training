@@ -1,5 +1,5 @@
 """
-Authors: Metehan Cekic
+Authors: Metehan Cekic and Raphael Chinchilla
 Date: 2020-03-09
 
 Description: Training and testing functions for neural models
@@ -21,11 +21,8 @@ import torch.nn.functional as F
 from deepillusion.torchattacks import PGD, RFGSM, FGSM
 
 # from deep_adv.adversary.layer_attacks import DistortNeuronsGradientDescent
-# from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradient
+from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradient
 # from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradientLineSearch
-# from deep_adv.adversary.layer_attacks import DistortNeuronsGradientDescentLineSearch
-# from deep_adv.adversary.layer_attacks import DistortNeuronsGradientDescentCoordinate
-from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradientLineSearchV2
 
 def train(model, train_loader, optimizer, scheduler):
     """ Train given model with train_loader and optimizer """
@@ -84,11 +81,9 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
 
 
         # DistortNeuronsGradientDescent(**dn_args)
-        # DistortNeuronsConjugateGradient(**dn_args)
+        DistortNeuronsConjugateGradient(**dn_args)
         # DistortNeuronsConjugateGradientLineSearch(**dn_args)
-        # DistortNeuronsGradientDescentLineSearch(**dn_args)
-        # DistortNeuronsGradientDescentCoordinate(**dn_args)
-        DistortNeuronsConjugateGradientLineSearchV2(**dn_args)
+
 
 
 
