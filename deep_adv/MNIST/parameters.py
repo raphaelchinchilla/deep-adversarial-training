@@ -64,17 +64,17 @@ def get_arguments():
     adv_training.add_argument("-tr_a", "--tr_alpha", type=float, default=0.375,
                               metavar="", help="random fgsm budget")
     adv_training.add_argument('-tr_Ss', '--tr_step_size', type=float,
-                              default=0.01, metavar='', help='Step size for PGD, adv training')
+                              default=0.05, metavar='', help='Step size for adv training')
     adv_training.add_argument('-tr_Ni', '--tr_num_iterations', type=int, default=40,
-                              metavar='', help='Number of iterations for PGD, adv training')
+                              metavar='', help='Number of iterations for adv training')
     adv_training.add_argument('--tr-rand', action='store_false', default=True,
                               help='randomly initialize PGD attack for training')
     adv_training.add_argument('-tr_Nrest', '--tr_num_restarts', type=int, default=1,
-                              metavar='', help='number of restarts for pgd for training')
-    adv_training.add_argument('-l', '--lamb', type=float, default=2.,
-                              metavar='', help='lamb')
-    adv_training.add_argument('-m', '--mu', type=float, default=0.01,
-                              metavar='', help='mu')
+                              metavar='', help='number of restarts for training')
+    adv_training.add_argument('-tr_l_in', '--tr_lamb_in', type=float, default=40,
+                              metavar='', help='weight for input layer')
+    adv_training.add_argument('-tr_l_la', '--tr_lamb_la', type=float, default=20,
+                              metavar='', help='weight for intermediate layer')
 
     # Adversarial testing parameters
     adv_testing = parser.add_argument_group("adv_testing", "Adversarial testing arguments")

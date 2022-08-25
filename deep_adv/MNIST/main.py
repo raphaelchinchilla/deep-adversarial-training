@@ -28,9 +28,7 @@ from deep_adv.MNIST.models.layers import LeNet
 from deep_adv.MNIST.models.lowapi import CNN
 from deep_adv.train_test_functions import (
     train,
-    train_adversarial,
     train_deep_adversarial,
-    train_fgsm_adversarial,
     test,
     test_adversarial,
     test_fgsm
@@ -83,9 +81,6 @@ def main():
     # logging.info(model)
 
     # Which optimizer to be used for training
-    # optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=args.momentum)
-    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
-    # scheduler = MultiStepLR(optimizer, milestones=[100, 150], gamma=0.1)
     optimizer = optim.SGD(model.parameters(), lr=args.lr_max, momentum=args.momentum,
                           weight_decay=args.weight_decay)
     lr_steps = args.epochs * len(train_loader)
@@ -98,8 +93,7 @@ def main():
         amp_args['master_weights'] = args.master_weights
     model, optimizer = amp.initialize(model, optimizer, **amp_args)
 
-    lamb = args.lamb  # budget for perturbation
-    mu = args.mu  # adverserial step
+
     if args.train:
         if args.tr_attack == "None":
             logger.info("Standard training")
@@ -130,6 +124,8 @@ def main():
                 "num_steps": args.tr_num_iterations,
                 "random_start": args.tr_rand,
                 "num_restarts": args.tr_num_restarts,
+                "lamb_in": args.tr_lamb_in,
+                "lamb_la": args.tr_lamb_la,
                 }
 
             for epoch in range(1, args.epochs + 1):
@@ -138,8 +134,6 @@ def main():
                                            train_loader=train_loader,
                                            optimizer=optimizer,
                                            scheduler=scheduler,
-                                           lamb=lamb,
-                                           mu=mu,
                                            data_params=data_params,
                                            attack_params=attack_params)
                 # breakpoint()
@@ -164,109 +158,8 @@ def main():
                     + args.model
                     + "_deep_adv"
                     + "_"
-                    + str(lamb)
                     + "_"
-                    + str(mu)
-                    # + args.tr_norm
-                    # + "_"
-                    # + str(args.tr_epsilon)
-                    + ".pt",
-                    )
-        elif args.tr_attack == "fgsm":
-            logger.info("FGSM adversarial training")
-            logger.info('Epoch \t Seconds \t LR \t \t Train Loss \t Train Acc')
-            data_params = {"x_min": x_min, "x_max": x_max}
-            attack_params = {
-                "norm": args.tr_norm,
-                "eps": args.tr_epsilon,
-                "alpha": args.tr_alpha,
-                "step_size": args.tr_step_size,
-                "num_steps": args.tr_num_iterations,
-                "random_start": args.tr_rand,
-                "num_restarts": args.tr_num_restarts,
-                }
-
-            for epoch in range(1, args.epochs + 1):
-                start_time = time.time()
-                fgsm_train_args = dict(model=model,
-                                       train_loader=train_loader,
-                                       optimizer=optimizer,
-                                       scheduler=scheduler,
-                                       data_params=data_params,
-                                       attack_params=attack_params)
-                # breakpoint()
-                train_loss, train_acc = train_fgsm_adversarial(**fgsm_train_args)
-
-                test_loss, test_acc = test(model, test_loader)
-                end_time = time.time()
-                lr = scheduler.get_lr()[0]
-                logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
-                logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
-                # scheduler.step()
-
-            # Save model parameters
-            if args.save_model:
-                if not os.path.exists(args.directory + "checkpoints/"):
-                    os.makedirs(args.directory + "checkpoints/")
-                torch.save(
-                    model.state_dict(),
-                    args.directory
-                    + "checkpoints/"
-                    + args.model
-                    + "_fgsm_adv"
-                    + "_"
-                    + str(attack_params["alpha"])
-                    + "_"
-                    + str(attack_params["eps"])
-                    # + args.tr_norm
-                    # + "_"
-                    # + str(args.tr_epsilon)
-                    + ".pt",
-                    )
-        elif args.tr_attack == "pgd":
-            logger.info("PGD adversarial training")
-            logger.info('Epoch \t Seconds \t LR \t \t Train Loss \t Train Acc')
-            data_params = {"x_min": x_min, "x_max": x_max}
-            attack_params = {
-                "norm": args.tr_norm,
-                "eps": args.tr_epsilon,
-                "alpha": args.tr_alpha,
-                "step_size": args.tr_step_size,
-                "num_steps": args.tr_num_iterations,
-                "random_start": args.tr_rand,
-                "num_restarts": args.tr_num_restarts,
-                }
-
-            for epoch in range(1, args.epochs + 1):
-                start_time = time.time()
-                pgd_train_args = dict(model=model,
-                                      train_loader=train_loader,
-                                      optimizer=optimizer,
-                                      scheduler=scheduler,
-                                      data_params=data_params,
-                                      attack_params=attack_params)
-                # breakpoint()
-                train_loss, train_acc = train_adversarial(**pgd_train_args)
-
-                test_loss, test_acc = test(model, test_loader)
-                end_time = time.time()
-                lr = scheduler.get_lr()[0]
-                logger.info(f'{epoch} \t {end_time - start_time:.0f} \t \t {lr:.4f} \t {train_loss:.4f} \t {train_acc:.4f}')
-                logger.info(f'Test  \t loss: {test_loss:.4f} \t acc: {test_acc:.4f}')
-                # scheduler.step()
-
-            # Save model parameters
-            if args.save_model:
-                if not os.path.exists(args.directory + "checkpoints/"):
-                    os.makedirs(args.directory + "checkpoints/")
-                torch.save(
-                    model.state_dict(),
-                    args.directory
-                    + "checkpoints/"
-                    + args.model
-                    + "_pgd_adv"
-                    + "_"
-                    + str(attack_params["eps"])
+                    + str(args.tr_step_size)
                     # + args.tr_norm
                     # + "_"
                     # + str(args.tr_epsilon)
@@ -282,7 +175,7 @@ def main():
                 )
         elif args.tr_attack == "dnwi":
             checkpoint_name = args.directory + "checkpoints/" + \
-                args.model + "_deep_adv" + "_" + str(lamb) + "_" + str(mu) + ".pt"
+                args.model + "_deep_adv" + "_" + str(args.tr_step_size) + "_" + ".pt"
             model.load_state_dict(torch.load(checkpoint_name))
         elif args.tr_attack == "fgsm":
             checkpoint_name = args.directory + "checkpoints/" + \

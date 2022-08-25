@@ -51,7 +51,7 @@ def train(model, train_loader, optimizer, scheduler):
     return train_loss/train_size, train_correct/train_size
 
 
-def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
+def train_deep_adversarial(model, train_loader, optimizer, scheduler,
                            data_params, attack_params):
 
     model.train()
@@ -74,8 +74,7 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
         dn_args = dict(model=model,
                        x=data,
                        y_true=target,
-                       lamb=lamb,
-                       mu=mu)
+                       attack_params=attack_params)
 
         DistortNeuronsConjugateGradient(**dn_args)
 
@@ -101,86 +100,6 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
     train_size = len(train_loader.dataset)
 
     return clean_loss/train_size, clean_correct/train_size, dist_loss/train_size, dist_correct/train_size
-
-
-def train_fgsm_adversarial(model, train_loader, optimizer, scheduler, data_params, attack_params):
-    """ Train given model with train_loader and optimizer with RFGSM adversarial examples """
-
-    model.train()
-
-    device = model.parameters().__next__().device
-
-    train_loss = 0
-    train_correct = 0
-    for data, target in train_loader:
-        data, target = data.to(device), target.to(device)
-
-        fgsm_args = dict(net=model,
-                         x=data,
-                         y_true=target,
-                         data_params=data_params,
-                         attack_params=attack_params)
-        perturbs = RFGSM(**fgsm_args)
-
-        data_adv = data + perturbs
-
-        optimizer.zero_grad()
-        output = model(data_adv)
-        cross_ent = nn.CrossEntropyLoss()
-        loss = cross_ent(output, target)
-        with amp.scale_loss(loss, optimizer) as scaled_loss:
-            scaled_loss.backward()
-        optimizer.step()
-        scheduler.step()
-
-        train_loss += loss.item() * data.size(0)
-        pred_adv = output.argmax(dim=1, keepdim=True)
-        train_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
-
-    train_size = len(train_loader.dataset)
-
-    return train_loss/train_size, train_correct/train_size
-
-
-def train_adversarial(model, train_loader, optimizer, scheduler, data_params, attack_params):
-
-    model.train()
-
-    device = model.parameters().__next__().device
-
-    train_loss = 0
-    train_correct = 0
-    for data, target in train_loader:
-
-        data, target = data.to(device), target.to(device)
-
-        # Adversary
-        pgd_args = dict(net=model,
-                        x=data,
-                        y_true=target,
-                        verbose=False,
-                        data_params=data_params,
-                        attack_params=attack_params)
-        perturbs = PGD(**pgd_args)
-
-        data_adv = data + perturbs
-
-        optimizer.zero_grad()
-        output = model(data_adv)
-        cross_ent = nn.CrossEntropyLoss()
-        loss = cross_ent(output, target)
-        with amp.scale_loss(loss, optimizer) as scaled_loss:
-            scaled_loss.backward()
-        optimizer.step()
-        scheduler.step()
-
-        train_loss += loss.item() * data.size(0)
-        pred_adv = output.argmax(dim=1, keepdim=True)
-        train_correct += pred_adv.eq(target.view_as(pred_adv)).sum().item()
-
-    train_size = len(train_loader.dataset)
-
-    return train_loss/train_size, train_correct/train_size
 
 
 def test(model, test_loader):

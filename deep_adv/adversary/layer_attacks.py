@@ -20,7 +20,7 @@ import torch.optim as optim
 #from deepillusion.torchattacks._utils import clip
 
 
-def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
+def DistortNeuronsConjugateGradient(model, x, y_true, attack_params):
     '''
     Descriptions:
         Conjugate Gradient
@@ -28,11 +28,12 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         Penalty for n[0] (abs(n[0]-x)>0.3, n[0]-0.5>=0.5)
     '''
     # Parameters
-    num_iters = 50
-    eps_input = 0.3 # value to clamp input disturbance
-    lamb_in = 50 # weight for input layer
-    lamb_layers = 20 # weight for inside layers
-    eps_init_layers= 0.5# math.sqrt(1/(lamb*lamb_layers)) # "std" for the initialization of disturbances
+    alpha = attack_params["step_size"] # attack step size
+    num_iters = attack_params["num_steps"] # number of attack iterations
+    eps_input = attack_params["eps"] # value to clamp input disturbance
+    lamb_in = attack_params["lamb_in"] # weight for input layer
+    lamb_la = attack_params["lamb_la"] # weight for inside layers
+    eps_init_layers= math.sqrt(1/(lamb_la)) # "std" for the initialization of disturbances
     debug = False # set to true to activate break points and prints
     #Code
     model.eval()
@@ -59,7 +60,6 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
     direct = [None] * (len(n))
     for i in range(len(n)):
         direct[i] = torch.zeros(model.n[i].size()).to(device)
-    alpha=torch.ones((x.size(0),1),device=device)
     beta=torch.zeros((x.size(0),1),device=device)
     norm_grad=torch.zeros((x.size(0),1),device=device)
     loss=torch.zeros((x.size(0)),device=device)
@@ -109,12 +109,12 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         # batch to possibly restart the search direction if direction is not ascent
         loss = lamb_in*reg(((n[0] - x).abs()-eps_input).relu()) # penalizing input disturbances larger than eps_input
         loss += lamb_in*reg(((n[0] - 0.5).abs()-0.5).relu()) # penalizing input disturbances that cause first layer to no be in [0,1]
-        loss += lamb_layers*rho(n[1],aux[0]) 
-        loss += lamb_layers*rho(n[2],aux[1]) 
-        loss += lamb_layers*rho(n[3],aux[2])
-        loss += -criterion(layers[-1](n[3]), y_true)/lamb
+        loss += lamb_la*rho(n[1],aux[0]) 
+        loss += lamb_la*rho(n[2],aux[1]) 
+        loss += lamb_la*rho(n[3],aux[2])
+        loss += -criterion(layers[-1](n[3]), y_true)
 
-        loss.sum().backward()
+        loss.mean().backward()
 
 
         with torch.no_grad():
@@ -136,7 +136,7 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
                 # Updating the search directions direct according to the conjugate gradient algorithm
                 direct[i].view(x.size(0),-1).mul_(beta) # Multiply the previous step direction of each batch by the value of beta that is equivalent. Equivalent to direct[i]*=beta.view([-1]+[1]*(direct[i].ndim-1)).expand_as(direct[i])
                 direct[i]+=-n[i].grad # Update the search direction with the new step to go
-                n[i]+=mu/iter*direct[i] # Using a decreasing step size mu/iter to take into account progression in the search direction
+                n[i]+=alpha*direct[i] # Using a decreasing step size alpha/iter to take into account progression in the search direction
                 n[i].grad.zero_()
 
 
@@ -148,10 +148,11 @@ def DistortNeuronsConjugateGradient(model, x, y_true, lamb, mu, optimizer=None):
         n[2].requires_grad_(True)
         aux[2]=F.leaky_relu(layers[3](n[2]))
         n[3].requires_grad_(True)
-
-    if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n[0])) or torch.any(torch.isnan(n[1])) or torch.any(torch.isnan(n[2])):
-        print("Iter:", iter)
-        raise ValueError('Diverged')
+        
+        with torch.no_grad():
+            if torch.any(torch.isnan(loss)) or torch.any(torch.isnan(n[0])) or torch.any(torch.isnan(n[1])) or torch.any(torch.isnan(n[2])):
+                print("Iter:", iter)
+                raise ValueError('Diverged')
 
 
     with torch.no_grad():
