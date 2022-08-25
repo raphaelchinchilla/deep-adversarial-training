@@ -20,9 +20,7 @@ import torch.nn.functional as F
 
 from deepillusion.torchattacks import PGD, RFGSM, FGSM
 
-# from deep_adv.adversary.layer_attacks import DistortNeuronsGradientDescent
 from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradient
-# from deep_adv.adversary.layer_attacks import DistortNeuronsConjugateGradientLineSearch
 
 def train(model, train_loader, optimizer, scheduler):
     """ Train given model with train_loader and optimizer """
@@ -79,12 +77,7 @@ def train_deep_adversarial(model, train_loader, optimizer, scheduler, lamb, mu,
                        lamb=lamb,
                        mu=mu)
 
-
-        # DistortNeuronsGradientDescent(**dn_args)
         DistortNeuronsConjugateGradient(**dn_args)
-        # DistortNeuronsConjugateGradientLineSearch(**dn_args)
-
-
 
 
         optimizer.zero_grad()

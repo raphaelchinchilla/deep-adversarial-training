@@ -49,7 +49,7 @@ def get_arguments():
                             help='input batch size for training (default: 50)')
     neural_net.add_argument('--test_batch_size', type=int, default=256,
                             metavar='N', help='input batch size for testing (default: 1000)')
-    neural_net.add_argument('--epochs', type=int, default=20, metavar='N',
+    neural_net.add_argument('--epochs', type=int, default=10, metavar='N',
                             help='number of epochs to train (default: 10)')
 
     # Adversarial training parameters
@@ -73,7 +73,7 @@ def get_arguments():
                               metavar='', help='number of restarts for pgd for training')
     adv_training.add_argument('-l', '--lamb', type=float, default=2.,
                               metavar='', help='lamb')
-    adv_training.add_argument('-m', '--mu', type=float, default=0.5,
+    adv_training.add_argument('-m', '--mu', type=float, default=0.01,
                               metavar='', help='mu')
 
     # Adversarial testing parameters
