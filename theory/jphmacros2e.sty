@@ -1,0 +1,739 @@
+% Identification
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{jphmacros2e}[1995/11/07 v1.0]
+%
+% Options
+%
+
+% [fancythm]:   Use AMSthm package for theorem style
+\newif\iffancythm@
+\DeclareOption{fancythm}{\fancythm@true}
+
+% [nothm]:   Do not declare theorem styles
+\newif\ifnothm@
+\DeclareOption{nothm}{\nothm@true}
+
+% [noproofprefix]:     ``Proof of `` in proof environments
+\newif\ifnoproofprefix@
+\DeclareOption{noproofprefix}{\noproofprefix@true}
+
+% [proofexists]: to use with ieee document styles
+\newif\ifredefineproof@
+\DeclareOption{proofexists}{\redefineproof@true}
+
+% [ieee]: to use with ieee document styles
+\newif\ifieee@
+\newif\ifredefineproof@
+\DeclareOption{ieee}{\ieee@true\fancythm@false\redefineproof@true}
+
+% [siam]: to use with siam document styles
+\newif\ifsiam@
+\DeclareOption{siam}{\siam@true\redefineproof@true\fancythm@false\nothm@true}
+
+% [elsart]: to use with elsevier/automatica styles
+\newif\ifelsart@
+\DeclareOption{elsart}{\elsart@true\fancythm@false}
+
+% [llncs]: to use with llncs document style
+\newif\ifllncs@
+\DeclareOption{llncs}{\llncs@true\fancythm@false\nothm@true\redefineproof@true}
+
+% [slides]:     Include macros for sildes and
+%               Do not create theorem styles (useful for slides files)
+\newif\ifslides@
+\DeclareOption{slides}{\slides@true}
+
+% [secthmcnt]:     Number lemmas, theorem, etc. with section number
+\newif\ifsecthmcnt@
+\DeclareOption{secthmcnt}{\secthmcnt@true}
+
+% [chathmcnt]:     Number lemmas, theorem, etc. with chapter number
+\newif\ifchathmcnt@
+\DeclareOption{chathmcnt}{\chathmcnt@true}
+
+%[singlethmcnt]:     Number Theorem, Lemas, etc. with same counter
+\newif\ifsinglethmcnt@
+\DeclareOption{singlethmcnt}{\singlethmcnt@true}
+
+% [fancybb]:    Use AMSfont \mathbb for \Real, \Int, \Cplx, etc
+\newif\iffancybb@
+\DeclareOption{fancybb}{\fancybb@true}
+
+% [morse]:      Include several of Morse's macros
+\newif\ifmorse@
+\DeclareOption{morse}{\morse@true}
+
+% [draft]:  Print draft notes and text
+\newif\ifdraft@
+\DeclareOption{draft}{\draft@true}
+
+% [nodraft]:  Print draft notes and text
+\DeclareOption{nodraft}{\draft@false}
+
+
+\ProcessOptions
+
+\RequirePackage{amsmath,amsfonts,amssymb,mathabx,color}
+
+%%% General settings
+
+\newcommand{\jph}{Jo\~{a}o P.~Hespanha }
+%\author{}
+\newcommand{\here}{\bigskip\centerline{\bf\Large Here !!!}\bigskip}
+
+%%% Customization
+
+%\def\doublespace{\renewcommand{\baselinestretch}{1.2}}
+        % simulate double space (put in the preamble)
+%\def\doublespace{\baselineskip=1.38\normalbaselineskip}
+        % simulate double space (can be put anywhere)
+% superseded by \usepackage{setspace}
+
+%%% Commands to modify paper size
+
+\newcommand{\hugepage}{
+  \topmargin -1.25in \textheight 10in
+  \textwidth 7in \evensidemargin -.25in \oddsidemargin -.25in}
+
+\newcommand{\bigpage}{
+  \topmargin -.5in \textheight 8.75in
+  \textwidth 6.5in \evensidemargin 0in \oddsidemargin 0in }
+
+\newcommand{\bigslides}{
+  \topmargin -.5in \textheight 9in
+  \textwidth 6.5in \evensidemargin 0in \oddsidemargin 0in }
+
+%%%
+\newcommand{\thisheading}[1]{ \thispagestyle{myheadings} \markboth{}{#1}}
+
+
+%%% Temporary references
+
+\newcommand{\tmpcite}[1]{\drafttext{[\footnote{\drafttext{[#1]}}]}}
+%\newcommand{\tmpcite}[1]{\drafttext{[{\sf #1}]}}
+\newcommand{\tmpref}[1]{[{\sf #1}]}
+\newcommand{\tmpeqref}[1]{({\sf #1})}
+
+%%% New Environments for lists
+
+\newenvironment{descr}%
+{\begin{list}{$\scriptstyle \bullet$}%
+{\leftmargin=3em \labelwidth=2em \labelsep=1ex}}%
+{\end{list}}
+
+%%% New environment for pseudocode
+
+\newcounter{pc}
+\newcounter{savepc}
+\newenvironment{code}{\begin{list}{\rm\arabic{pc}}{\usecounter{pc}\setcounter{pc}{\value{savepc}}\itemsep=-.25ex\leftmargin=7ex\labelwidth=4ex\labelsep=4ex}}{\end{list}\setcounter{savepc}{\value{pc}}}
+\newcommand{\resetpc}{\setcounter{savepc}{0}}
+
+%%% New Evironments for theorems, corollaries, etc. (need \usepackage{amsthm})
+
+\ifslides@
+\else
+
+% Counter to be prefixed
+\newif\ifprefixcnt@
+\prefixcnt@false
+\ifchathmcnt@
+    \def\prefixcounter{chapter}
+    \prefixcnt@true
+\fi
+\ifsecthmcnt@
+    \def\prefixcounter{section}
+    \prefixcnt@true
+\fi
+
+
+% Theorem style
+
+\ifllncs@
+   \spnewtheorem{assumption}{Assumption}{\bfseries}{\itshape}
+   \spnewtheorem{uexample}{Example}{\itshape}{\rmfamily}
+   \renewcommand{\theuexample}{}
+\fi
+
+\iffancythm@ 
+   \RequirePackage{amsthm}
+   \theoremstyle{plain}
+\else
+      \ifredefineproof@
+        \renewenvironment{proof}[1][Proof]{\par
+              \normalfont \topsep6\p@\@plus6\p@\relax\trivlist
+              \item[\hskip\labelsep\itshape #1\@addpunct{.}]\ignorespaces}
+           {\endtrivlist\@endpefalse}
+      \else
+        \newenvironment{proof}[1][Proof]{\par
+              \normalfont \topsep6\p@\@plus6\p@\relax\trivlist
+              \item[\hskip\labelsep\itshape #1\@addpunct{.}]\ignorespaces}
+            {\endtrivlist\@endpefalse}
+      \fi
+\fi
+
+\ifnothm@
+\else
+\ifprefixcnt@
+    \newtheorem{theorem}{Theorem}[\prefixcounter]
+\else
+    \newtheorem{theorem}{Theorem}
+\fi
+\ifsinglethmcnt@
+    \newtheorem{lemma}[theorem]{Lemma}
+    \newtheorem{corollary}[theorem]{Corollary}
+    \newtheorem{proposition}[theorem]{Proposition}
+\ifelsart@
+\else
+    \newtheorem{fact}[theorem]{Fact}
+    \newtheorem{algorithm}[theorem]{Algorithm}
+\fi
+    \newtheorem{conjecture}[theorem]{Conjecture}
+    \newtheorem{problem-statment}[theorem]{Problem}
+\else
+    \ifprefixcnt@
+       \newtheorem{lemma}{Lemma}[\prefixcounter]
+       \newtheorem{corollary}{Corollary}[\prefixcounter]
+       \newtheorem{proposition}{Proposition}[\prefixcounter]
+\ifelsart@
+\else
+       \newtheorem{fact}{Fact}[\prefixcounter]
+       \newtheorem{algorithm}{Algorithm}[\prefixcounter]
+\fi
+       \newtheorem{conjecture}{Conjecture}[\prefixcounter]
+   \else
+       \newtheorem{lemma}{Lemma}
+       \newtheorem{corollary}{Corollary}
+       \newtheorem{proposition}{Proposition}
+\ifelsart@
+\else
+       \newtheorem{fact}{Fact}
+       \newtheorem{algorithm}{Algorithm}
+\fi
+       \newtheorem{conjecture}{Conjecture}
+   \fi
+\fi
+\newtheorem{utheorem}{Theorem\hspace*{-.7ex}}
+\renewcommand{\theutheorem}{}
+
+% Definition Style
+
+\iffancythm@
+  \theoremstyle{definition} 
+\fi
+\ifsinglethmcnt@
+    \newtheorem{definition}[theorem]{Definition}
+    \newtheorem{assumption}[theorem]{Assumption}
+    \newtheorem{property}[theorem]{Property}
+    \newtheorem{example}[theorem]{Example}
+    \newtheorem{problem}[theorem]{Problem}
+    \newtheorem{exercise}[theorem]{Exercise}
+    \newtheorem{open-question}[theorem]{Open questions}
+\else
+    \ifprefixcnt@
+        \newtheorem{definition}{Definition}[\prefixcounter]
+        \newtheorem{assumption}{Assumption}[\prefixcounter]
+        \newtheorem{property}{Property}[\prefixcounter]
+        \newtheorem{example}{Example}[\prefixcounter]
+        \newtheorem{problem}{Problem}[\prefixcounter]
+        \newtheorem{exercise}{Exercise}[\prefixcounter]
+        \newtheorem{open-question}{Open questions}[\prefixcounter]
+    \else
+        \newtheorem{definition}{Definition}
+        \newtheorem{assumption}{Assumption}
+        \newtheorem{property}{Property}
+        \newtheorem{example}{Example}
+        \newtheorem{problem}{Problem}
+        \newtheorem{exercise}{Exercise}
+        \newtheorem{open-question}{Open questions}
+    \fi
+\fi
+\newtheorem{properties}{Properties\hspace*{-.5ex}}
+\renewcommand{\theproperties}{}
+\newtheorem{uexample}{Example\hspace*{-.5ex}}
+\renewcommand{\theuexample}{}
+\newtheorem{uexercise}{Exercise\hspace*{-.5ex}}
+\renewcommand{\theuexercise}{}
+
+% Remark Style
+
+\iffancythm@
+  \theoremstyle{remark}
+\fi
+\ifsinglethmcnt@
+    \newtheorem{remark}[theorem]{Remark}
+\else
+    \ifprefixcnt@
+        \newtheorem{remark}{Remark}[\prefixcounter]
+    \else
+        \newtheorem{remark}{Remark}
+    \fi
+\fi
+\newtheorem{uremark}{Remark\hspace*{-.7ex}}
+\renewcommand{\theuremark}{}
+
+\fi % \ifnothm
+
+\fi % \ifslides
+
+\ifsiam@
+   \newtheorem{remark}{Remark}
+   \newtheorem{assumption}{Assumption}
+\fi
+
+%% List of properties with independent counter
+\newcounter{plist}
+\newcounter{saveplist}
+\renewcommand{\theplist}{P\arabic{plist}} 
+\newenvironment{plist}%
+{\begin{list}{\bf P\arabic{plist}\hfill}
+    {\usecounter{plist}\setcounter{plist}{\value{saveplist}}
+        \leftmargin=6ex \labelwidth=5ex \labelsep=1ex}}
+    {\setcounter{saveplist}{\value{plist}}\end{list}}
+
+%% List of conditions
+\newcounter{clist}
+\newcounter{saveclist}
+\renewcommand{\theclist}{C\arabic{clist}} 
+\newenvironment{clist}%
+{\begin{list}{\bf C\arabic{clist}\hfill}
+    {\usecounter{clist}\setcounter{clist}{\value{saveclist}}
+        \leftmargin=6ex \labelwidth=5ex \labelsep=1ex}}
+    {\setcounter{saveclist}{\value{clist}}\end{list}}
+
+%% List of hypothesis
+\newcounter{hlist}
+\newcounter{savehlist}
+\renewcommand{\thehlist}{H\arabic{hlist}} 
+\newenvironment{hlist}%
+{\begin{list}{\bf H\arabic{hlist}\hfill}
+    {\usecounter{hlist}\setcounter{hlist}{\value{savehlist}}
+        \leftmargin=6ex \labelwidth=5ex \labelsep=1ex}}
+    {\setcounter{savehlist}{\value{hlist}}\end{list}}
+
+%% List of assumptions
+\newcounter{alist}
+\newcounter{savealist}
+\renewcommand{\thealist}{A\arabic{alist}} 
+\newenvironment{alist}%
+{\begin{list}{\bf A\arabic{alist}\hfill}
+    {\usecounter{alist}\setcounter{alist}{\value{savealist}}
+        \leftmargin=6ex \labelwidth=5ex \labelsep=1ex}}
+    {\setcounter{savealist}{\value{alist}}\end{list}}
+
+%% List of definitions
+\newcounter{dlist}
+\newcounter{savedlist}
+\renewcommand{\thedlist}{D\arabic{dlist}} 
+\newenvironment{dlist}%
+{\begin{list}{\bf D\arabic{dlist}\hfill}
+    {\usecounter{dlist}\setcounter{dlist}{\value{savedlist}}
+        \leftmargin=6ex \labelwidth=5ex \labelsep=1ex}}
+    {\setcounter{savedlist}{\value{dlist}}\end{list}}
+
+% Proofs & claims
+
+%\newcommand{\proofsize}{\small}
+\ifnoproofprefix@
+   \newcommand{\proofprefix}{}
+\else
+   \newcommand{\proofprefix}{Proof of }
+\fi
+\newcommand{\proofsize}{}
+\newcommand{\proofcnt}{}
+\ifsecthmcnt@
+   \renewcommand{\proofcnt}{\thesection}
+\fi
+\ifchathmcnt@
+   \renewcommand{\proofcnt}{\thechapter}
+\fi
+
+% Equation
+\newenvironment{proof-equation}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}#1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Lemma
+\newenvironment{proof-lemma}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Lemma #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Theorem
+\newenvironment{proof-theorem}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Theorem #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Corollary
+\newenvironment{proof-corollary}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Corollary #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Proposition
+\newenvironment{proof-proposition}[1]  
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Proposition #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Fact
+\newenvironment{proof-fact}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Fact #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Remark
+\newenvironment{proof-remark}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Remark #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Conjecture
+\newenvironment{proof-conjecture}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[\proofprefix{}Conjecture #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Properties
+\newenvironment{proof-properties}
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}\proofsize}{\renewcommand{\qed}{}\end{proof}}
+
+% Problem
+
+
+\ifnothm@
+\else
+\newenvironment{solution}[1]
+{\nopagebreak \setcounter{claims}{0} \parindent=0ex
+\begin{proof}[Solution to #1]\proofsize}{\renewcommand{\qed}{}\end{proof}}
+\fi
+
+
+\newcommand{\sufficiency}{\medskip \noindent {\bf Sufficiency ($\Rightarrow$)\hspace{1ex}}}
+\newcommand{\necessity}{\medskip \noindent {\bf Necessity ($\Leftarrow$)\hspace{1ex}}}
+\newcommand{\proofimply}[2]{\medskip \noindent {\bf \ref{#1}. $\Rightarrow$ \ref{#2}.\hspace{.5ex}}}
+
+\newcounter{claims}
+\newcounter{saveclaims}     % to save counter to avoid reinitialization
+\newenvironment{claims}%
+{\begin{list}{\makebox[10ex][l]{\sl Claim \arabic{claims}.}}%
+{\usecounter{claims}\setcounter{claims}{\value{saveclaims}}\leftmargin=0ex \labelwidth=0ex \labelsep=0ex}}%
+{\end{list}\setcounter{saveclaims}{\value{claims}}}
+
+\newcounter{steps}
+\newenvironment{steps}%
+{\begin{list}{\makebox[8ex][l]{\sl Step \arabic{steps}.}}%
+{\usecounter{steps}\leftmargin=0ex \labelwidth=0ex \labelsep=0ex}}%
+{\end{list}}
+
+% Other lists
+
+\newcounter{paragraphs}         % list with no indents and labels
+\renewcommand{\theparagraphs}{\S{\arabic{paragraphs}}} % reference is ``\S 1''
+\newcounter{savedparagraphs}    % save counter to avoid reinitialization
+\newenvironment{paragraphs}
+{\begin{list}
+    {\S{\arabic{paragraphs}}~~}
+    {\usecounter{paragraphs}\setcounter{paragraphs}{\value{savedparagraphs}}
+      \leftmargin=0ex 
+      \setlength{\labelwidth}{-\labelsep}}
+    }
+  {\end{list}\setcounter{savedparagraphs}{\value{paragraphs}}}
+
+\newcounter{exam}         % list with no indents and labels
+\newenvironment{exam}
+{\begin{list}
+    {\textbf{Problem {\arabic{exam}}}}
+    {\usecounter{exam}
+      \leftmargin=0ex 
+      \setlength{\labelwidth}{-\labelsep}}
+    }
+  {\end{list}}
+
+\newcounter{enumerate}                 % enumerate with arabic numerals
+\renewcommand{\theenumerate}{\arabic{enumerate})} % reference is in roman
+\newenvironment{enumeratetight}%
+{\begin{list}{\arabic{enumerate})\hfill}{\usecounter{enumerate}
+        \leftmargin=0ex \labelwidth=-1ex \labelsep=1ex}}{\end{list}}
+
+\newcounter{renumerate}                 % enumerate with roman numerals
+\renewcommand{\therenumerate}{(\roman{renumerate})} % reference is in roman
+%\newenvironment{renumerate}%
+%{\begin{list}{(\roman{renumerate})\hfill}{\usecounter{renumerate}
+%        \leftmargin=7ex \labelwidth=3ex \labelsep=1ex}}{\end{list}}
+\newenvironment{renumerate}%
+{\begin{list}{(\roman{renumerate})\hfill}{\usecounter{renumerate}
+        \leftmargin=4ex \labelwidth=3ex \labelsep=1ex}}{\end{list}}
+
+\newenvironment{renumeratetight}%
+{\begin{list}{(\roman{renumerate})\hfill}{\usecounter{renumerate}
+        \leftmargin=0ex \labelwidth=-1ex \labelsep=1ex}}{\end{list}}
+
+\newcounter{aenumerate}                 % enumerate with alpha numerals
+\renewcommand{\theaenumerate}{(\alph{aenumerate})} % reference is in alpha
+%\newenvironment{aenumerate}%
+%{\begin{list}{(\alph{aenumerate})\hfill}{\usecounter{aenumerate}
+%        \leftmargin=7ex \labelwidth=3ex \labelsep=1ex}}{\end{list}}
+\newenvironment{aenumerate}%
+{\begin{list}{(\alph{aenumerate})\hfill}{\usecounter{aenumerate}
+        \leftmargin=4ex \labelwidth=3ex \labelsep=1ex}}{\end{list}}
+\newenvironment{aenumeratetight}%
+{\begin{list}{(\alph{aenumerate})\hfill}{\usecounter{aenumerate}
+        \leftmargin=0ex \labelwidth=-1ex \labelsep=1ex}}{\end{list}}
+
+\newenvironment{rquote}%
+{\begin{list}{}{\leftmargin=5ex}\item}{\end{list}}
+
+\newenvironment{my-itemize}%
+{\begin{list}{$\scriptstyle \bullet$}{\labelsep=0ex}}{\end{list}}
+
+
+% Remarks
+
+\newcounter{remarks}
+\newenvironment{remarks}%
+{\bigskip \nopagebreak \noindent {\bf Remarks}\begin{list}{\makebox[3ex][l]{\rm \arabic{remarks}.}}%
+{\usecounter{remarks}\leftmargin=3ex \labelwidth=3ex \labelsep=0em}}%
+{\end{list}}
+
+%\newcommand{\remark}{\noindent {\bf Remark\hspace{1ex}}}
+
+% Macros for Slides
+
+\ifslides@
+   % Slide Title
+   \newcommand{\slidetitle}[1]{\begin{center}\Large #1\end{center}}
+   % Slide with Title
+   \newenvironment{slide*}[1]{\begin{slide}\slidetitle{#1}}{\end{slide}}
+
+\fi
+
+% Smashed lists
+\newenvironment{sitemize}[1]{\begin{itemize}\itemsep=#1}{\end{itemize}}
+\newenvironment{senumerate}[1]{\begin{enumerate}\itemsep=#1}{\end{enumerate}}
+\newenvironment{sdescription}[1]{\begin{description}\itemsep=#1}{\end{description}}
+
+
+% Notation
+
+\newenvironment{notation}%
+{\subsection*{Notation}
+  \begin{normalsize}\begin{list}{$\scriptstyle \bullet\hspace{1ex}$}
+      {\leftmargin=0ex \labelwidth=0ex \labelsep=0ex \itemsep=.5ex}}
+    {\end{list}\end{normalsize}}
+
+\newenvironment{item-notation}%
+{\begin{list}{$\scriptstyle \bullet$}{\topsep=0ex \parsep=0ex}}{\end{list}}
+
+%%%%%%% Draft notes %%%%%%%%%%%
+
+\ifdraft@
+\newcommand{\drafttext}[1]{{\color{magenta}\sl #1}}
+\newcommand{\draftnote}[1]{\footnote{\drafttext{Draft note: #1}}}
+\else
+\newcommand{\drafttext}[1]{}
+\newcommand{\draftnote}[1]{}
+\fi
+
+
+% MATLAB 
+\newcommand{\matlab}{MATLAB\textsuperscript{\textregistered}}
+\newcommand{\simulink}{Simulink\textsuperscript{\textregistered}}
+
+%%% Macros for math mode
+
+\newcommand{\yestag}{\stepcounter{equation}\tag{\theequation}}
+                                                % Puts a tag in a * environment
+
+% Macros for Math Mode
+
+\def\qedsymbol{\ensuremath{\Box}}      % qed symbol(requires latexsym)
+
+\def\qed{\ifhmode\unskip\nobreak\fi\quad\qedsymbol}     % qed symbol
+\def\frqed{\ifhmode\nobreak\hbox to5pt{\hfil}\nobreak%
+\hskip 0pt plus1fill\nobreak\fi\quad\qedsymbol\renewcommand{\qed}{}} % flushed right qedsymbol
+
+\def\QEDsymbol{\vrule width.6em height.5em depth.1em\relax}% QED symbol
+\def\frQED{\ifhmode\nobreak\hbox to5pt{\hfil}\nobreak%
+\hskip 0pt plus1fill\nobreak\fi\quad\QEDsymbol\renewcommand{\qed}{}} % flushed right QED symbol
+\def\QED{\ifhmode\unskip\nobreak\fi\quad\QEDsymbol}     % QED symbol
+
+
+\newcommand{\Deriv}[2]{\frac{{d} #1}{{d} #2}}
+\newcommand{\PDeriv}[2]{\frac{\partial#1}{\partial#2}}
+
+\newcommand{\eqdef}{\coloneq}     % equal by definition (:=)
+\newcommand{\defeq}{\eqcolon}     % equal by definition (=:)
+\newcommand{\wpo}[1]{\stackrel{\operatorname{wpo}}{#1}} % add wpo on top
+\newcommand{\aev}[1]{\stackrel{\operatorname{ae}}{#1}} % add ae on top
+%\RequirePackage{mathabx}
+%\newcommand{\eqdef}{\coloneq}     % equal by definition (:=)
+%\newcommand{\defeq}{\eqcolon}     % equal by definition (=:)
+
+
+\newcommand{\eqv}{\quad \Leftrightarrow \quad}
+\newcommand{\imply}{\quad \Rightarrow \quad}
+\newcommand{\alimply}{&& \Rightarrow  &}   % and at aligned environment
+\newcommand{\eqc}{\, , \quad}
+\newcommand{\eqand}{\quad \text{and} \quad}
+\newcommand{\aland}{&& \text{and} &}   % and at aligned environment
+\newcommand{\eqor}{\quad \text{or} \quad}
+\newcommand{\eqif}{\text{if }}
+\newcommand{\eqother}{\text{otherwise}}
+
+\newcommand{\deffunc}[5]{\begin{equation}\begin{array}{rcccc}#1&:&#2&\to&#3\\&&#4&\mapsto&#5\end{array}\end{equation}}
+\newcommand{\toset}{\rightrightarrows}
+
+% Functions & Operators
+
+\ifsiam@
+\else
+\DeclareMathOperator{\diag}{diag}         % diag
+\DeclareMathOperator{\rank}{rank}         % rank
+\DeclareMathOperator{\supp}{supp}         % support
+\fi
+
+\DeclareMathOperator{\co}{co}             % convex hull
+\newcommand{\cco}{\closure{\operatorname{co}}}  % closed convex hull
+\DeclareMathOperator{\adj}{adj}           % adjoint
+\DeclareMathOperator{\cof}{cof}           % cofactor
+\DeclareMathOperator{\stack}{stack}       % colstack
+\DeclareMathOperator{\vecspan}{span}      % span
+%\DeclareMathOperator{\kernel}{Ker}        % kernel
+\DeclareMathOperator{\kernel}{ker}        % kernel  (Wiki suggestion)
+\DeclareMathOperator{\eqkernel}{EqKer}    % equivalence kernel
+\DeclareMathOperator{\image}{Im}          % Image
+\DeclareMathOperator{\sgn}{sgn}           % sign
+\DeclareMathOperator{\ess}{ess}           % ess for essential sup/inf
+\DeclareMathOperator*{\esssup}{ess\; sup}     % essential sup
+\DeclareMathOperator*{\essinf}{ess\; inf}     % essential inf
+\DeclareMathOperator*{\argmin}{arg\; min}     % argmin
+\DeclareMathOperator*{\argmax}{arg\; max}     % argmax
+\DeclareMathOperator{\dist}{d}            % distance
+\DeclareMathOperator{\vol}{vol}           % volume
+\DeclareMathOperator{\lcm}{lcm}           % least common multiplier
+%\DeclareMathOperator{\gcd}{gcd}          % greatest common divisor
+\DeclareMathOperator{\trace}{trace}       % trace
+\DeclareMathOperator{\colstack}{vec}      % stack of columns
+\DeclareMathOperator{\sat}{sat}           % saturation
+\DeclareMathOperator{\dz}{dz}             % deadzone
+\DeclareMathOperator{\dom}{dom}           % domain
+\DeclareMathOperator{\Ric}{Ric}           % solution to Riccati % eq.
+
+
+\DeclareMathOperator{\Prob}{P}            % Probability measure
+\DeclareMathOperator{\E}{E}               % Expected value
+\DeclareMathOperator{\Var}{Var}           % Variance
+\DeclareMathOperator{\CV}{CV}             % Coefficient of variation
+\DeclareMathOperator{\Cov}{CoV}           % Co-variance
+\DeclareMathOperator{\pdf}{pdf}           % probability density function
+\DeclareMathOperator{\Stddev}{StdDev}     % Standard Deviation
+\DeclareMathOperator{\erf}{erf}           % standard error function
+
+\renewcommand{\O}{\operatorname{O}}               % order-of
+
+\newcommand{\dle}{\;\dot\le\;}
+\newcommand{\dge}{\;\dot\ge\;}
+\newcommand{\dl}{\;\dot<\;}
+\newcommand{\dg}{\;\dot>\;}
+\newcommand{\<}{\langle}                        % < bracket
+\renewcommand{\>}{\rangle}                      % > bracket
+                                % Conflict with tabbing environment
+\newcommand{\ktimes}{\otimes}                   % Kronecker product
+\newcommand{\setunion}{\;\cup\;}
+\newcommand{\bigsetunion}{\bigcup}
+\newcommand{\setintersect}{\;\cap\;}
+\newcommand{\interior}[1]{\operatorname{Int}(#1)}       % interior of a set
+%\newcommand{\graph}[1]{\operatorname{graph}(#1)}        % graph of a function
+\newcommand{\boundary}[1]{\partial #1}          % boundary of a set
+\newcommand{\closure}[1]{\overline{#1}}         % closure of a set
+\newcommand{\ball}[2]{{\mathrm B}_{#1}\left(#2\right)}  % ball of radius #1
+                                                        % and centered at #2
+%\newcommand{\st}{\;|\;}                         % 'such that' vertical bar
+\newcommand{\longvec}[1]{\overrightarrow{#1}}   % long vector
+
+% AMS Fonts
+
+\newcommand{\bb}{\mathbb}                       % Black Board 
+\newcommand{\fk}{\mathfrak}                     % Frak
+\newcommand{\mrm}{\mathrm}                      % Roman
+\newcommand{\mbf}{\mathbf}                      % Bold face
+\newcommand{\sbf}{\boldsymbol}                  % Bold face for symbols
+\newcommand{\scr}{\mathcal}
+\def\cal{\mathscr}
+
+
+% Blackboard symbols
+
+\iffancybb@
+   \RequirePackage{amsfonts}
+   \RequirePackage[mathscr]{eucal}
+
+   \newcommand{\Int}{\Z}
+   \newcommand{\PInt}{\N_{>0}}
+   \newcommand{\NNInt}{\N_{\ge 0}}
+   \newcommand{\Real}{\R}
+   \newcommand{\R}{\mathbb R}
+   \newcommand{\Z}{\mathbb Z}
+   \newcommand{\Cplx}{\mathbb C}
+   \newcommand{\C}{\mathbb C}
+   \newcommand{\Proj}{\mathbb P}
+\else
+   \newcommand{\Int}{\mathrm{Z\kern-.32em Z}}   % Set of Integers
+   \newcommand{\PInt}{\mathrm{I\kern-.20em N}}  % Set of Positive Integers
+   \newcommand{\NNInt}{\mathrm{I\kern-.20em N}} % Set of Non-negative Int.
+   \newcommand{\Real}{\mathrm{I\kern-.17em R}}  % Set of Real Numbers
+   \newcommand{\R}{\Real}
+   \newcommand{\Cplx}{\mathrm{\kern.24em\vrule width.05em height1.4ex 
+        depth-.05ex\kern-.26em C}}              % Set of Complex Numbers
+   \newcommand{\Proj}{\mathrm{I\kern-.17em P}}
+\fi
+\newcommand{\PReal}{{\Real^+}}          % Set of Positive Real Numbers
+\newcommand{\NNReal}{{\Real^+}}         % Set of Non Negative Real Numbers
+
+% Sets
+
+\newcommand{\RH}{\operatorname{RH}}     % RH
+\newcommand{\RP}{\operatorname{RP}}     % RH
+\newcommand{\Hinf}{\operatorname{H}_\infty}   % H-infinity
+\renewcommand{\H}{\operatorname{H}}       % H
+\renewcommand{\L}{\operatorname{L}}     % L space
+\newcommand{\Lset}{\mathcal L}          % L set
+\newcommand{\GL}{\mathrm{GL}}           % General Linear group
+\newcommand{\SO}{\mathrm{SO}}           % Special Orthogonal group
+\newcommand{\so}{\mathrm{so}}           % Linear space of skew sym. mats.
+\newcommand{\SE}{\mathrm{SE}}           % Special Euclidean group
+\newcommand{\se}{\mathrm{se}}           % Group of twists
+\newcommand{\K}{\scr{K}}                % class K functions
+\newcommand{\KL}{\scr{KL}}              % class KL functions
+
+% other symbols
+
+\newcommand{\Epsilon}{\mathcal E}
+\newcommand{\di}{\; d}          % d for integrals
+\newcommand{\SDT}{\texttt{StochDynTools}}
+
+% Maximum number of columns for AMSmath (10 be default)
+\newcount\c@MaxMatrixCols \c@MaxMatrixCols=15   
+
+%\newcommand{\bmatrixed}{\matt}
+%\newcommand{\pmatrixed}{\pmatt}
+%\newcommand{\sbmatrixed}{\smatt}
+\newcommand{\matt}[1]{\begin{bmatrix}#1\end{bmatrix}}
+\newcommand{\Bmatt}[1]{\begin{Bmatrix}#1\end{Bmatrix}}
+\newcommand{\smatt}[1]{\left[\begin{smallmatrix}#1\end{smallmatrix}\right]}
+\newcommand{\tmatt}[1]{[\begin{matrix}#1\end{matrix}]}
+\newcommand{\matrixed}[1]{\begin{matrix}#1\end{matrix}}
+\newcommand{\smatrixed}[1]{\begin{smallmatrix}#1\end{smallmatrix}}
+\newcommand{\pmatt}[1]{\begin{pmatrix}#1\end{pmatrix}}
+\newcommand{\spmatt}[1]{\left(\begin{smallmatrix}#1\end{smallmatrix}\right)}
+
+
+\ifmorse@
+   \renewcommand{\P}{\mathbb{P}}
+   \newcommand{\dfb}{\eqdef}
+   \newcommand{\N}{\mathbb N}
+   \renewcommand{\qed}{\QED}
+   \newcommand{\rep}{\eqref}
+   \def\eq#1{\begin{align}#1\end{align}}
+\fi
+
+% Local Variables:
+% TeX-parse-self: t
+% TeX-auto-save: t
+% End:

@@ -1,0 +1,431 @@
+% Fichier extension abrmath.sty - Fr. O
+% Version 1.0
+
+%
+% Identification
+
+\ProvidesPackage{abrege} %
+%[26/11/2014 v1.0 Extension abrmath pour des expressions mathématiques abrégées]
+
+%
+% Corps du fichier
+\RequirePackage{amsmath, bm, dsfont}
+
+\RequirePackage{mathtools, mleftright}
+
+\RequirePackage{xspace}
+
+
+
+%%
+
+
+%%
+%% divers
+%\DeclarePairedDelimiter\abs{\lvert}{\rvert}
+%\DeclarePairedDelimiter\parentheses{\lparen}{\rparen}
+%\DeclarePairedDelimiter\bracketed{\lbrack}{\rbrack}
+
+
+
+\DeclareMathOperator\esp{\eE} %
+\DeclareMathOperator\cov{cov} %
+
+
+%\newcommand\Esp[1]{\esp\bracketed*{#1}} %
+%\newcommand\Det[1]{\text{Det}\bracketed*{#1}} %
+% Derivatives
+\newcommand{\deriv}[3][]{\frac{\partial^{#1} #2}{\partial #3 ^{#1}}} 
+
+
+\DeclareMathOperator{\sinc}{sinc}
+%\DeclareMathOperator{\erf}{erf}
+\DeclareMathOperator{\erfc}{erfc}
+\DeclareMathOperator{\erfcx}{erfcx}
+\DeclareMathOperator{\sh}{sh}
+%\DeclareMathOperator{\diag}{diag}
+%\DeclareMathOperator*{\argmax}{arg\,max}
+%\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator{\sign}{sign}
+
+%% MathJax compatibility
+% \newcommand\Cos[1]{\cos\left( #1 \right)} %
+% \newcommand\Sin[1]{\sin\left( #1 \right)} %
+% \newcommand\Sh[1]{\sh\left( #1 \right)} %
+% \newcommand\Exp[1]{\exp\left( #1 \right)} %
+% \newcommand\Ln[1]{\ln\left( #1 \right)} %
+% \newcommand\Log[1]{\log\left( #1 \right)} %
+% \newcommand\Erf[1]{\erf\left( #1 \right)} %
+% \newcommand\Sinc[1]{\sinc\left( #1 \right)} %
+% \newcommand\Arccos[1]{\arccos\left( #1 \right)} %
+% \newcommand\Arcsin[1]{\arcsin\left( #1 \right)} %
+% \newcommand\Arctan[1]{\arctan\left( #1 \right)} %
+% \newcommand\Diag[1]{\diag\left( #1 \right)}
+
+\newcommand\Cos[1]{\cos\parentheses*{#1}} %
+\newcommand\Sin[1]{\sin\parentheses*{#1}} %
+\newcommand\Sh[1]{\sh\parentheses*{#1}} %
+\newcommand\Exp[1]{\exp\parentheses*{#1}} %
+\newcommand\Ln[1]{\ln\parentheses*{#1}} %
+\newcommand\Log[1]{\log\parentheses*{#1}} %
+\newcommand\Erf[1]{\erf\parentheses*{#1}} %
+\newcommand\Sinc[1]{\sinc\parentheses*{#1}} %
+\newcommand\Arccos[1]{\arccos\parentheses*{#1}} %
+\newcommand\Arcsin[1]{\arcsin\parentheses*{#1}} %
+\newcommand\Arctan[1]{\arctan\parentheses*{#1}} %
+\newcommand\Diag[1]{\diag\parentheses*{#1}}
+
+\DeclareMathOperator{\dirac}{\delta}
+\newcommand\Dirac[1]{\,\delta\parentheses*{#1}}
+\DeclareMathOperator{\porte}{\Pi}
+\newcommand\Porte[2]{\porte_{#2}\parentheses*{#1}}
+\DeclareMathOperator{\tri}{\Lambda}
+\newcommand\Tri[2]{\tri_{#2}\parentheses*{#1}}
+
+\newcommand\mr[1]{\mathring{#1}} %
+
+\newcommand\dB{\text{dB}} %
+\newcommand\tand{\text{ and }}
+\newcommand\tif{\text{ if }}
+\newcommand\twith{\text{ with }}
+\newcommand\twhere{\text{ where }}
+
+
+\newcommand\Est[1]{\widehat{#1}}
+
+\DeclareMathOperator{\ztrans}{\Zcal}
+\DeclareMathOperator{\ftrans}{\Fcal}
+\newcommand\Ztrans[1]{\ztrans\bracketed*{#1}}
+\newcommand\Ftrans[1]{\ftrans\bracketed*{#1}}
+
+
+%Abreviations for text
+
+
+\newcommand{\ie}{\textit{i.e.}\xspace} %
+\newcommand{\eg}{\textit{e.g.}\xspace} %
+
+
+
+
+
+
+%%
+%% ensemble
+\newcommand\eA{{\mathds{A}}} %
+\newcommand\eC{{\mathds{C}}} %
+\newcommand\eE{{\mathds{E}}} %
+\newcommand\eN{{\mathds{N}}} %
+\newcommand\eQ{{\mathds{Q}}} %
+\newcommand\eR{{\mathds{R}}} %
+\newcommand\eV{{\mathds{V}}} %
+\newcommand\eZ{{\mathds{Z}}} %
+
+%%
+%% caligraphie
+\newcommand\Acal{{\mathcal{A}}} %
+\newcommand\Bcal{{\mathcal{B}}} %
+\newcommand\Ccal{{\mathcal{C}}} %
+\newcommand\Dcal{{\mathcal{D}}} %
+\newcommand\Ecal{{\mathcal{E}}} %
+\newcommand\Fcal{{\mathcal{F}}} %
+\newcommand\Gcal{{\mathcal{G}}} %
+\newcommand\Hcal{{\mathcal{H}}} %
+\newcommand\Ical{{\mathcal{I}}} %
+\newcommand\Jcal{{\mathcal{J}}} %
+\newcommand\Kcal{{\mathcal{K}}} %
+\newcommand\Lcal{{\mathcal{L}}} %
+\newcommand\Mcal{{\mathcal{M}}} %
+\newcommand\Ncal{{\mathcal{N}}} %
+\newcommand\Ocal{{\mathcal{O}}} %
+\newcommand\Pcal{{\mathcal{P}}} %
+\newcommand\Qcal{{\mathcal{Q}}} %
+\newcommand\Rcal{{\mathcal{R}}} %
+\newcommand\Scal{{\mathcal{S}}} %
+\newcommand\Tcal{{\mathcal{T}}} %
+\newcommand\Ucal{{\mathcal{U}}} %
+\newcommand\Vcal{{\mathcal{V}}} %
+\newcommand\Wcal{{\mathcal{W}}} %
+\newcommand\Xcal{{\mathcal{X}}} %
+\newcommand\Ycal{{\mathcal{Y}}} %
+\newcommand\Zcal{{\mathcal{Z}}} %
+
+%%
+%% gras
+% \newcommand\ab{{\ensuremath{\bm{a}}}\xspace} %
+% \newcommand\bb{{\ensuremath{\bm{b}}}\xspace} %
+% \newcommand\cb{{\ensuremath{\bm{c}}}\xspace} %
+% \newcommand\db{{\ensuremath{\bm{d}}}\xspace} %
+% \newcommand\eb{{\ensuremath{\bm{e}}}\xspace} %
+% \newcommand\fb{{\ensuremath{\bm{f}}}\xspace} %
+% \newcommand\gb{{\ensuremath{\bm{g}}}\xspace} %
+% \newcommand\hb{{\ensuremath{\bm{h}}}\xspace} %
+% \newcommand\ib{{\ensuremath{\bm{i}}}\xspace} %
+% \newcommand\jb{{\ensuremath{\bm{j}}}\xspace} %
+% \newcommand\kb{{\ensuremath{\bm{k}}}\xspace} %
+% \newcommand\lb{{\ensuremath{\bm{l}}}\xspace} %
+% \newcommand\mb{{\ensuremath{\bm{m}}}\xspace} %
+% \newcommand\nb{{\ensuremath{\bm{n}}}\xspace} %
+% \newcommand\ob{{\ensuremath{\bm{o}}}\xspace} %
+% \newcommand\pb{{\ensuremath{\bm{p}}}\xspace} %
+% \newcommand\qb{{\ensuremath{\bm{q}}}\xspace} %
+% \newcommand\rb{{\ensuremath{\bm{r}}}\xspace} %
+% \renewcommand\sb{{\ensuremath{\bm{s}}}\xspace} %
+% \newcommand\tb{{\ensuremath{\bm{t}}}\xspace} %
+% \newcommand\ub{{\ensuremath{\bm{u}}}\xspace} %
+% \newcommand\vb{{\ensuremath{\bm{v}}}\xspace} %
+% \newcommand\wb{{\ensuremath{\bm{w}}}\xspace} %
+% \newcommand\xb{{\ensuremath{\bm{x}}}\xspace} %
+% \newcommand\yb{{\ensuremath{\bm{y}}}\xspace} %
+% \newcommand\zb{{\ensuremath{\bm{z}}}\xspace}
+
+% \newcommand\Ab{{\ensuremath{\bm{A}}}\xspace} %
+% \newcommand\Bb{{\ensuremath{\bm{B}}}\xspace} %
+% \newcommand\Cb{{\ensuremath{\bm{C}}}\xspace} %
+% \newcommand\Db{{\ensuremath{\bm{D}}}\xspace} %
+% \newcommand\Eb{{\ensuremath{\bm{E}}}\xspace} %
+% \newcommand\Fb{{\ensuremath{\bm{F}}}\xspace} %
+% \newcommand\Gb{{\ensuremath{\bm{G}}}\xspace} %
+% \newcommand\Hb{{\ensuremath{\bm{H}}}\xspace} %
+% \newcommand\Ib{{\ensuremath{\bm{I}}}\xspace} %
+% \newcommand\Jb{{\ensuremath{\bm{J}}}\xspace} %
+% \newcommand\Kb{{\ensuremath{\bm{K}}}\xspace} %
+% \newcommand\Lb{{\ensuremath{\bm{L}}}\xspace} %
+% \newcommand\Mb{{\ensuremath{\bm{M}}}\xspace} %
+% \newcommand\Nb{{\ensuremath{\bm{N}}}\xspace} %
+% \newcommand\Ob{{\ensuremath{\bm{O}}}\xspace} %
+% \newcommand\Pb{{\ensuremath{\bm{P}}}\xspace} %
+% \newcommand\Qb{{\ensuremath{\bm{Q}}}\xspace} %
+% \newcommand\Rb{{\ensuremath{\bm{R}}}\xspace} %
+% \newcommand\Sb{{\ensuremath{\bm{S}}}\xspace} %
+% \newcommand\Tb{{\ensuremath{\bm{T}}}\xspace} %
+% \newcommand\Ub{{\ensuremath{\bm{U}}}\xspace} %
+% \newcommand\Vb{{\ensuremath{\bm{V}}}\xspace} %
+% \newcommand\Wb{{\ensuremath{\bm{W}}}\xspace} %
+% \newcommand\Xb{{\ensuremath{\bm{X}}}\xspace} %
+% \newcommand\Yb{{\ensuremath{\bm{Y}}}\xspace} %
+% \newcommand\Zb{{\ensuremath{\bm{Z}}}\xspace} %
+
+% \newcommand\alphab{{\bm{\alpha}}} %
+% \newcommand\betab{{\bm{\beta}}} %
+% \newcommand\gammab{{\bm{\gamma}}} %
+% \newcommand\deltab{{\bm{\delta}}} %
+% \newcommand\epsilonb{{\bm{\epsilon}}} %
+% \newcommand\zetab{{\bm{\zeta}}} %
+% \newcommand\etab{{\bm{\eta}}} %
+% \newcommand\thetab{{\bm{\theta}}} %
+% \newcommand\iotab{{\bm{\iota}}} %
+% \newcommand\kappab{{\bm{\kappa}}} %
+% \newcommand\lambdab{{\bm{\lambda}}} %
+% \newcommand\mub{{\bm{\mu}}} %
+% \newcommand\nub{{\bm{\nu}}} %
+% \newcommand\xib{{\bm{\xi}}} %
+% \newcommand\omicronb{{\bm{\omicron}}} %
+% \newcommand\pib{{\bm{\pi}}} %
+% \newcommand\rhob{{\bm{\rho}}} %
+% \newcommand\sigmafb{{\bm{\sigmaf}}} %
+% \newcommand\sigmab{{\bm{\sigma}}} %
+% \newcommand\taub{{\bm{\tau}}} %
+% \newcommand\upsilonb{{\bm{\upsilon}}} %
+% \newcommand\phib{{\bm{\phi}}} %
+% \newcommand\chib{{\bm{\chi}}} %
+% \newcommand\psib{{\bm{\psi}}} %
+% \newcommand\omegab{{\bm{\omega}}} %
+
+% \newcommand\Alphab{{\bm{\Alpha}}} %
+% \newcommand\Betab{{\bm{\Beta}}} %
+% \newcommand\Gammab{{\bm{\Gamma}}} %
+% \newcommand\Deltab{{\bm{\Delta}}} %
+% \newcommand\Epsilonb{{\bm{\Epsilon}}} %
+% \newcommand\Zetab{{\bm{\Zeta}}} %
+% \newcommand\Etab{{\bm{\Eta}}} %
+% \newcommand\Thetab{{\bm{\Theta}}} %
+% \newcommand\Iotab{{\bm{\Iota}}} %
+% \newcommand\Kappab{{\bm{\Kappa}}} %
+% \newcommand\Lambdab{{\bm{\Lambda}}} %
+% \newcommand\Mub{{\bm{\Mu}}} %
+% \newcommand\Nub{{\bm{\Nu}}} %
+% \newcommand\Xib{{\bm{\Xi}}} %
+% \newcommand\Omicronb{{\bm{\Omicron}}} %
+% \newcommand\Pib{{\bm{\Pi}}} %
+% \newcommand\Rhob{{\bm{\Rho}}} %
+% \newcommand\Sigmab{{\bm{\Sigma}}} %
+% \newcommand\Taub{{\bm{\Tau}}} %
+% \newcommand\Upsilonb{{\bm{\Upsilon}}} %
+% \newcommand\Phib{{\bm{\Phi}}} %
+% \newcommand\Chib{{\bm{\Chi}}} %
+% \newcommand\Psib{{\bm{\Psi}}} %
+% \newcommand\Omegab{{\bm{\Omega}}} %
+
+% \newcommand\zerob{{\bm{0}}} %
+
+\DeclareBoldMathCommand\ab{a} %
+\DeclareBoldMathCommand\bb{b} %
+\DeclareBoldMathCommand\cb{c} %
+\DeclareBoldMathCommand\db{d} %
+\DeclareBoldMathCommand\eb{e} %
+\DeclareBoldMathCommand\hb{h} %
+\DeclareBoldMathCommand\ib{i} %
+\DeclareBoldMathCommand\jb{j} %
+\DeclareBoldMathCommand\kb{k} %
+\DeclareBoldMathCommand\lb{l} %
+\DeclareBoldMathCommand\mb{m} %
+\DeclareBoldMathCommand\nb{n} %
+\DeclareBoldMathCommand\ob{o} %
+\DeclareBoldMathCommand\pb{p} %
+\DeclareBoldMathCommand\qb{q} %
+\DeclareBoldMathCommand\rb{r} %
+\DeclareBoldMathCommand\sb{s} %
+\DeclareBoldMathCommand\tb{t} %
+\DeclareBoldMathCommand\ub{u} %
+\DeclareBoldMathCommand\vb{v} %
+\DeclareBoldMathCommand\wb{w} %
+\DeclareBoldMathCommand\xb{x} %
+\DeclareBoldMathCommand\yb{y} %
+\DeclareBoldMathCommand\zb{z}
+
+\DeclareBoldMathCommand\Ab{A} %
+\DeclareBoldMathCommand\Bb{B} %
+\DeclareBoldMathCommand\Cb{C} %
+\DeclareBoldMathCommand\Db{D} %
+\DeclareBoldMathCommand\Eb{E} %
+\DeclareBoldMathCommand\Fb{F} %
+\DeclareBoldMathCommand\Gb{G} %
+\DeclareBoldMathCommand\Hb{H} %
+\DeclareBoldMathCommand\Ib{I} %
+\DeclareBoldMathCommand\Jb{J} %
+\DeclareBoldMathCommand\Kb{K} %
+\DeclareBoldMathCommand\Lb{L} %
+\DeclareBoldMathCommand\Mb{M} %
+\DeclareBoldMathCommand\Nb{N} %
+\DeclareBoldMathCommand\Ob{O} %
+\DeclareBoldMathCommand\Pb{P} %
+\DeclareBoldMathCommand\Qb{Q} %
+\DeclareBoldMathCommand\Rb{R} %
+\DeclareBoldMathCommand\Sb{S} %
+\DeclareBoldMathCommand\Tb{T} %
+\DeclareBoldMathCommand\Ub{U} %
+\DeclareBoldMathCommand\Vb{V} %
+\DeclareBoldMathCommand\Wb{W} %
+\DeclareBoldMathCommand\Xb{X} %
+\DeclareBoldMathCommand\Yb{Y} %
+\DeclareBoldMathCommand\Zb{Z} %
+
+\DeclareBoldMathCommand\alphab{\alpha} %
+\DeclareBoldMathCommand\betab{\beta} %
+\DeclareBoldMathCommand\gammab{\gamma} %
+\DeclareBoldMathCommand\deltab{\delta} %
+\DeclareBoldMathCommand\epsilonb{\epsilon} %
+\DeclareBoldMathCommand\zetab{\zeta} %
+\DeclareBoldMathCommand\etab{\eta} %
+\DeclareBoldMathCommand\thetab{\theta} %
+\DeclareBoldMathCommand\iotab{\iota} %
+\DeclareBoldMathCommand\kappab{\kappa} %
+\DeclareBoldMathCommand\lambdab{\lambda} %
+\DeclareBoldMathCommand\mub{\mu} %
+\DeclareBoldMathCommand\nub{\nu} %
+\DeclareBoldMathCommand\xib{\xi} %
+\DeclareBoldMathCommand\pib{\pi} %
+\DeclareBoldMathCommand\rhob{\rho} %
+\DeclareBoldMathCommand\sigmab{\sigma} %
+\DeclareBoldMathCommand\taub{\tau} %
+\DeclareBoldMathCommand\upsilonb{\upsilon} %
+\DeclareBoldMathCommand\phib{\phi} %
+\DeclareBoldMathCommand\chib{\chi} %
+\DeclareBoldMathCommand\psib{\psi} %
+\DeclareBoldMathCommand\omegab{\omega} %
+\DeclareBoldMathCommand\oneb{1} %
+
+% % \DeclareBoldMathCommand\Alphab{\Alpha} %
+% \DeclareBoldMathCommand\Betab{\Beta} %
+% \DeclareBoldMathCommand\Gammab{\Gamma} %
+\DeclareBoldMathCommand\Deltab{\Delta} %
+% \DeclareBoldMathCommand\Epsilonb{\Epsilon} %
+% \DeclareBoldMathCommand\Zetab{\Zeta} %
+% \DeclareBoldMathCommand\Etab{\Eta} %
+% \DeclareBoldMathCommand\Thetab{\Theta} %
+% \DeclareBoldMathCommand\Iotab{\Iota} %
+% \DeclareBoldMathCommand\Kappab{\Kappa} %
+\DeclareBoldMathCommand\Lambdab{\Lambda} %
+% \DeclareBoldMathCommand\Mub{\Mu} %
+% \DeclareBoldMathCommand\Nub{\Nu} %
+% \DeclareBoldMathCommand\Xib{\Xi} %
+% \DeclareBoldMathCommand\Omicronb{\Omicron} %
+% \DeclareBoldMathCommand\Pib{\Pi} %
+% \DeclareBoldMathCommand\Rhob{\Rho} %
+\DeclareBoldMathCommand\Sigmab{\Sigma} %
+% \DeclareBoldMathCommand\Taub{\Tau} %
+% \DeclareBoldMathCommand\Upsilonb{\Upsilon} %
+% \DeclareBoldMathCommand\Phib{\Phi} %
+% \DeclareBoldMathCommand\Chib{\Chi} %
+% \DeclareBoldMathCommand\Psib{\Psi} %
+% \DeclareBoldMathCommand\Omegab{\Omega} %
+
+\DeclareBoldMathCommand\zerob{0} %
+
+\DeclareMathOperator\dirc{ %
+  \rule{0.5pt}{1.3ex}%
+  \rule{0.5em}{0.5pt}%
+  \rule{0.5pt}{1.3ex}%
+  \rule{0.5em}{0.5pt}%
+  \rule{0.5pt}{1.3ex}\,}
+
+
+
+%%
+%% droit
+\newcommand\aD{{\text{a}}} %
+\newcommand\bD{{\text{b}}} %
+\newcommand\cD{{\text{c}}} %
+\newcommand\dD{{\text{d}}} %
+\newcommand\eD{{\text{e}}} %
+\newcommand\fD{{\text{f}}} %
+\newcommand\gD{{\text{g}}} %
+\newcommand\hD{{\text{h}}} %
+\newcommand\iD{{\text{i}}} %
+\newcommand\jD{{\text{j}}} %
+\newcommand\kD{{\text{k}}} %
+\newcommand\lD{{\text{l}}} %
+\newcommand\mD{{\text{m}}} %
+\newcommand\nD{{\text{n}}} %
+\newcommand\oD{{\text{o}}} %
+\newcommand\pD{{\text{p}}} %
+\newcommand\qD{{\text{q}}} %
+\newcommand\rD{{\text{r}}} %
+\newcommand\sD{{\text{s}}} %
+\newcommand\tD{{\text{t}}} %
+\newcommand\uD{{\text{u}}} %
+\newcommand\vD{{\text{v}}} %
+\newcommand\wD{{\text{w}}} %
+\newcommand\xD{{\text{x}}} %
+\newcommand\yD{{\text{y}}} %
+\newcommand\zD{{\text{z}}} %
+
+
+\newcommand\AD{{\text{A}}} %
+\newcommand\BD{{\text{B}}} %
+\newcommand\CD{{\text{C}}} %
+\newcommand\DD{{\text{D}}} %
+\newcommand\ED{{\text{E}}} %
+\newcommand\FD{{\text{F}}} %
+\newcommand\GD{{\text{G}}} %
+\newcommand\HD{{\text{H}}} %
+\newcommand\ID{{\text{I}}} %
+\newcommand\JD{{\text{J}}} %
+\newcommand\KD{{\text{K}}} %
+\newcommand\LD{{\text{L}}} %
+\newcommand\MD{{\text{M}}} %
+\newcommand\ND{{\text{N}}} %
+\newcommand\OD{{\text{O}}} %
+\newcommand\PD{{\text{P}}} %
+\newcommand\QD{{\text{Q}}} %
+\newcommand\RD{{\text{R}}} %
+\newcommand\SD{{\text{S}}} %
+\newcommand\TD{{\text{T}}} %
+\newcommand\UD{{\text{U}}} %
+\newcommand\VD{{\text{V}}} %
+\newcommand\WD{{\text{W}}} %
+\newcommand\XD{{\text{X}}} %
+\newcommand\YD{{\text{Y}}} %
+\newcommand\ZD{{\text{Z}}} %
+

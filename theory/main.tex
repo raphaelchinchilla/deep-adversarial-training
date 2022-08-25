@@ -1,0 +1,182 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Template Definitions, do not touch
+\documentclass[11pt,letterpaper,DIV=17]{scrartcl}
+
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{physics}
+\let\div\relax
+\let\trace\relax
+\let\rank\relax
+\let\erf\relax
+\usepackage{jphmacros2e}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{mathtools}
+\usepackage{abrege}
+\renewcommand{\eE}{\mathds{E}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{algorithm} \usepackage{algpseudocode}
+
+\renewcommand{\eE}{\mathds{E}}
+\newcommand{\st}{\text{ s.t. }}
+\renewcommand{\iff}{\Leftrightarrow}
+\newcommand{\inv}[1][1]{^{-#1}}
+\newcommand{\on}[1][k]{^{(#1)}}
+\newcommand{\at}[2][]{#1|_{#2}}
+\newcommand{\dtil}{\widetilde{d}}
+
+
+\let\sigmafull\sigma
+\renewcommand{\sigma}{\sigmafull\qty}
+%\let\rhofull\rho
+%\renewcommand{\rho}{\rhofull\qty}
+
+% All the coomands to avoid a bunch of index 
+%\renewcommand{\l}[1][]{^{(\ell#1)}}
+%\renewcommand{\L}[1][]{^{(L#1)}}
+%\renewcommand{\j}[1][]{^{(j#1)}}
+%\renewcommand{\k}[1][]{^{(k#1)}}
+
+\renewcommand{\l}[1][]{_{\ell#1}}
+\renewcommand{\L}[1][]{_{L#1}}
+\renewcommand{\j}[1][]{_{j#1}}
+\renewcommand{\k}[1][]{_{k#1}}
+
+
+\newcommand{\s}{s\qty}
+\renewcommand{\c}{c\qty}
+\newcommand{\f}{f\l\qty}
+
+
+
+
+%opening
+\title{Deep adversarial training}
+\author{Raphael Chinchilla}
+\date{\vspace{-4ex}}
+
+\begin{document}
+
+\maketitle
+
+\section{Topology of a Neural Network}
+
+The task of training a Neural Network is mathematically expressed as solving 
+\begin{equation} \label{eq:learning}
+\min_{w} \eE_{x,y\sim\Pcal}[\c(y,h(w,x))]
+\end{equation}
+where $h(w,x)$ is a Neural Network and $c(\cdot)$ is a cost function. A Neural Network is described as a recurrent function: Let $n\l$ be the $\ell$th layer of neurons, represented as a column vector, with $n^{(0)}:=x$, then 
+\begin{equation} \label{eq:neuron}
+n\l=\f(w\l\,n\l[-1])
+\end{equation}
+where $w\l$ is a weights matrix which can represent either a fully connected layer or a convolution layer and $f(\cdot)$ is a non-linear function, generally an activation function and possibly a maxpool layer. The last layer is given by
+\begin{equation} \label{eq:lastlayer}
+n\L=\s(w\L\,n\L[-1])
+\end{equation}
+where $\s(\cdot)$ is a function such as the softmax.
+
+\section{Shallow adversarial training}
+
+Classical adversarial training, which we call "Shallow adversarial training", consists of preparing the neural network to attacks by finding the worst perturbation that could be used given some budget. This is normally formulated as
+\begin{equation} \label{eq:boundedattack}
+\min_{w} \eE_{x,y\sim\Pcal}\qty[\max_{d\in\Dcal}\c(y,h(w,x+d))]
+\end{equation}
+where $\Dcal$ is a bounded set such as $\norm{d}_p<\epsilon$, $p\in\{1,2,+\infty\}$. We can generalize \eqref{eq:boundedattack} by writing
+\begin{equation} \label{eq:shallow}
+\min_{w} \eE_{x,y\sim\Pcal}\qty[\max_{d}\c(y,h(w,x+d))+\rho(d)].
+\end{equation}
+where $\rho(\cdot)$ is penalization function. If we take $\rho(\cdot)=\log\Ical_{\Dcal}(\cdot)$, where $\Ical_{\Dcal}(\cdot)$ is the indicator function of the domain $\Dcal$, then we retrieve the criteria from \eqref{eq:boundedattack}. But one could also chose for instance $\rho(d)=-\lambda\norm{d}^2$ with $\lambda>0$.
+
+\section{Deep adversarial training}
+
+We call the previous adversarial training strategy of shallow because, in practice, it is only preparing for attacks on the input layer. However, an attack on the input propagates through the network. In deep adversarial training, we also prepare the intermediate layers against attacks. Not only such attack is more powerful and generalizes shallow attacks, it is also not reproducible by an adversary. This means the neural network would be trained against an much stronger attacker than it could encounter.
+
+Formally, a neural network $h(w,x,d)$ subject to deep adversarial attacks is defined by the recursive relation
+\begin{equation} \label{eq:advneuron}
+n\l=\f(w\l\,n\l[-1])+d\l
+\end{equation}
+The deep adversarial training is defined by
+\begin{equation} \label{eq:deep1}
+\min_{w} \eE_{x,y\sim\Pcal}\qty[\max_{d}\c(y,h(w,x,d))+\rho(d)].
+\end{equation}
+We are particularly interested in functions $\rho(\cdot)$ that which is on stages related, \ie that can be written as
+\begin{equation} \label{eq:deep2}
+\min_{w} \eE_{x,y\sim\Pcal}\qty[\max_{d}\c(y,h(w,x,d))+\sum_{\ell=0}^{L-1}\rho\l(d\l)].
+\end{equation}
+
+
+
+One might think that computing the adversarial attack
+\begin{equation} \label{eq:compute_max}
+\max_{d}\c(y,h(w,x,d))+\sum_{\ell=0}^{L-1}\rho\l(d\l)
+\end{equation}
+is significantly harder than the regular shallow attack. We will show that this is actually not the case. The first step is to see that we can rewrite \eqref{eq:compute_max} using equality constraints for the recursive relation that defines the neural network such as
+\begin{equation} \label{eq:compute_adv}
+\begin{split}
+\max_{d_{0:L-1},n_{0:L-1}}&\ \c(y,\s(w\L,n\L[-1]))+\sum_{\ell=0}^{L-1}\rho\l(d\l)
+\\\st &\  n\l=\f(w\l,n\l[-1])+d\l
+\\ &\ n_{0}=x+d_{0}
+\end{split}
+\end{equation}
+The relevant aspect is that solving \eqref{eq:compute_adv} is equivalent to solving
+\begin{equation} \label{eq:compute_adv_CW}
+\begin{split}
+\max_{n_{0:L-1}}&\ \c(y,\s(w\L,n\L[-1]))+\rho_{0}(n_0-x)+\sum_{\ell=1}^{L-1}\rho\l(n\l-\f(w\l,n\l[-1])).
+\end{split}
+\end{equation}
+The key advantage of rewriting the problem in such a way is that we no longer need to enforce the equality constraints in \eqref{eq:compute_adv}, or, equivalently, the recursive relation in equations \eqref{eq:advneuron}. Instead, we can maximize directly with respect to the neurons, without needing to be concerned with the network aspect of the neural network.
+
+
+The equivalence between \eqref{eq:compute_adv_CW} and \eqref{eq:compute_max} relies on computing a very good approximate of the maximum at each iteration. In order to address this, one needs an efficient algorithm to compute the maximum. We are interested in two types of functions $\rho_\ell(\cdot)$ . First, consider de case is when $\rho_\ell(\cdot)=-\lambda_\ell\norm{\cdot}^2$, where $\lambda_\ell$ is a positive constant. Because a neural network is roughly a linear operation, 
+$$
+-\lambda_0\norm{n_0-x}^2-\sum_{\ell=1}^{L-1}\lambda_\ell\norm{n\l-\f(w\l,n\l[-1])}^2
+$$
+will be roughly a quadratic cost. By choosing to use the Conjugate Gradient (CG) algorithm, it is possible to obtain an approximate maximum of \eqref{eq:compute_adv_CW} with very few iterations, as CG is the most efficient first order method to solve a quadratic equation.
+
+The second case is when $\rho\l(\cdot)=\log\Ical_{\Dcal}(\cdot)$. Let us assume $\Dcal=\{d\in \eR^{n_\ell}: g(d)\le0\}$ for some function $g:\eR^{n_\ell}\to\eR^{n_\ell}$. In this case, we can approximate $\rho_\ell(d)$ by $\hat \rho\l(d)=-\lambda_\ell(\text{relu}(g(d)))^2$ with $\lambda_\ell$ a large positive number. In this case, our reasoning about the cost function being approximately quadratic is still valid.
+
+We summarize the reasoning of this section in Algorithm \ref{alg:deep}
+
+\begin{algorithm}[H]
+	\begin{algorithmic}[1]
+		\For {each epoch}
+			\For {each batch in the training set}
+			\State Sample a batch with elements $x(0),x(1),\dots,x(B)$
+				\For {b from 0 to B}
+					\State Initialize $d(b)$ randomly
+					\State Initialize the value of the neurons $n(b)$ by feeding $x(b)$ to the neural network $h(w,x(b),d(b))$.
+					\State Use a Conjugate Gradient algorithm to solve 
+					\begin{equation*} 
+					\begin{split}
+					n(b)^*\in\argmax_{n_{0:L-1}}&\ \c(y,\s(w\L,n\L[-1]))+\rho_{0}(n_0-x(b))+\sum_{\ell=1}^{L-1}\rho\l(n\l-\f(w\l,n\l[-1]))
+					\end{split}
+					\end{equation*}
+					\State Compute the optimal disturbances $d(b)^*$ corresponding to $n(b)^*$ using \eqref{eq:advneuron}
+					\EndFor
+				\State Update the value of the weights using, for instance, Stochastic Gradient Descent
+				\begin{equation*}
+				w=w-\gamma \sum_{b=1}^B\derivative{ \c(y,h(w,x(b),d(b)))}{w}
+				\end{equation*}
+				\EndFor			
+			\EndFor
+
+	\end{algorithmic}
+	\caption{Deep adversarial attack}
+	\label{alg:deep}
+\end{algorithm}
+
+
+
+
+
+
+
+
+\end{document}
